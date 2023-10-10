@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "6v32dhvnmBvSnUpYRwXf1MkC1SjY4kqrjb3FheI3TeY=",
+  "Source": "sti_sys_backend",
+  "BasePath": "_content/sti_sys_backend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\sti_sys_backend.props" />
+</Project>
