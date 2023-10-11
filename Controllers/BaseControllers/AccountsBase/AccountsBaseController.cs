@@ -32,11 +32,11 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         return Ok(result);
     }
 
-    [Route("map-primary-check/{email}/{username}"), HttpGet, HttpPut, HttpPost]
+    [Route("map-primary-check"), HttpGet, HttpPut, HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> MapEmails([FromRoute] string email, [FromRoute] string username)
+    public async Task<IActionResult> MapEmails([FromBody] AccountSetupHelper accountSetupHelper)
     {
-        bool result = (await _repository.findEmail(email, username));
+        bool result = (await _repository.findEmail(accountSetupHelper));
         return Ok(result);
     }
 

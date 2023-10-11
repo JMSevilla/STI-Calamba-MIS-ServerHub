@@ -18,7 +18,7 @@ public interface IAccountsService<T> where T: class, Accounts
     public String GenerateRefreshToken();
     public Task<dynamic> RefreshToken(AccessWithRefresh accessWithRefresh);
     public ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token);
-    public Task<Boolean> findEmail(string email, string username);
+    public Task<Boolean> findEmail(AccountSetupHelper accountSetupHelper);
     public Task<dynamic> AccountSigningIn(LoginParams loginParams);
     public Task<dynamic> Revoke(string username);
     public Task<dynamic> CreateModerator(T account);

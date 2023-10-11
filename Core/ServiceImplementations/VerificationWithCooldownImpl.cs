@@ -214,7 +214,6 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         var rGetKey = await context.Set<MailGunSecuredApiKey>()
             .Where(x => x._apistatus == ApiStatus.ACTIVE)
             .FirstOrDefaultAsync();
-        ConfigurationManager _configuration = new ConfigurationManager();
         string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
@@ -223,6 +222,8 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
             .Replace("[body]", body);
         var mail = new MimeMessage();
         var builder = new BodyBuilder();
+        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
+        mail.To.Add(MailboxAddress.Parse(email));
         builder.HtmlBody = MailText;
         mail.Subject = $"Welcome {email}";
         mail.Body = builder.ToMessageBody();
@@ -231,7 +232,7 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
             client.AuthenticationMechanisms.Remove(rGetKey.AuthenticationMechanisms);
-            client.Authenticate(rGetKey.domain, rGetKey.key);
+            client.Authenticate("postmaster@" + rGetKey.domain, rGetKey.key);
             client.Send(mail);
             client.Disconnect(true);
         }
