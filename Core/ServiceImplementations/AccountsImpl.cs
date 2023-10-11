@@ -210,6 +210,9 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
         smtp.Disconnect(true);*/
+        var rGetKey = await context.Set<MailGunSecuredApiKey>()
+            .Where(x => x._apistatus == ApiStatus.ACTIVE)
+            .FirstOrDefaultAsync();
         string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
@@ -226,7 +229,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
             client.AuthenticationMechanisms.Remove("XOAUTH2");
-            client.Authenticate(_configuration["MailGun:UserName"], _configuration["MailGun:Password"]);
+            client.Authenticate(rGetKey.domain, rGetKey.key);
             client.Send(mail);
             client.Disconnect(true);
         }
