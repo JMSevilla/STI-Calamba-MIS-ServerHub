@@ -210,25 +210,22 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
         smtp.Disconnect(true);*/
-        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
-        StreamReader str = new StreamReader(FilePath);
-        string MailText = str.ReadToEnd();
-        str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
-            .Replace("[body]", body);
-        var mail = new MimeMessage();
-        mail.From.Add(new MailboxAddress("STI System Email Sender", "devopsbyte@sandbox4ff74236e60d4ed9a9f6c2f33489d01b.mailgun.org"));
-        mail.To.Add(new MailboxAddress("STI System Email Sender", email));
-        mail.Subject = "Email System";
-        var builder = new BodyBuilder();
-        builder.HtmlBody = MailText;
-        mail.Body = builder.ToMessageBody();
+        MimeMessage mail = new MimeMessage();
+        mail.From.Add(new MailboxAddress("System Administrator",
+            "lizkiethbabael@gmail.com"));
+        mail.To.Add(new MailboxAddress("User",email));
+        mail.Subject = "System Email";
+        mail.Body = new TextPart("plain")
+        {
+            Text = @"ACCOUNT VERIFICATION OTP CODE" + code,
+        };
+                
         using (var client = new SmtpClient())
         {
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
             client.AuthenticationMechanisms.Remove("XOAUTH2");
-            client.Authenticate("postmaster@sandbox4ff74236e60d4ed9a9f6c2f33489d01b.mailgun.org", "c86e6ce46a3185f83b818e06569ee292-5465e583-5d6ced1f");
+            client.Authenticate("postmaster@sandbox76f0892c8f43491abca4aacec7a62761.mailgun.org", "e02e4175a9cb273ad484d72c86679f9e-5465e583-65f29fa3");
             client.Send(mail);
             client.Disconnect(true);
         }
