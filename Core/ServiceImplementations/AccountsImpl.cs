@@ -221,8 +221,8 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             .Replace("[body]", body);
         var mail = new MimeMessage();
         var builder = new BodyBuilder();
-        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-        mail.To.Add(MailboxAddress.Parse(email));
+        mail.From.Add(new MailboxAddress("System Administrator", "devopsbyte60@" + rGetKey.domain));
+        mail.To.Add(new MailboxAddress("User", email));
         builder.HtmlBody = MailText;
         mail.Subject = $"Welcome {email}";
         mail.Body = builder.ToMessageBody();
@@ -310,12 +310,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         return principal;
     }
 
-    public async Task<bool> findEmail(string email, string u)
+    public async Task<bool> findEmail(AccountSetupHelper accountSetupHelper)
     {
         Verification verification = new Verification();
         int code = int.Parse(GenerateVerificationCode.GenerateCode());
-        bool existingVrf = await context.Set<Verification>().AnyAsync(x => x.email == email && x.isValid == 1);
-        bool findEmailOrUsernameExists = await context.Set<TEntity>().AnyAsync(x => x.username == u || x.email == email);
+        bool existingVrf = await context.Set<Verification>().AnyAsync(x => x.email == accountSetupHelper.email && x.isValid == 1);
+        bool findEmailOrUsernameExists = await context.Set<TEntity>().AnyAsync(x => x.username == accountSetupHelper.username || x.email == accountSetupHelper.email);
         if(findEmailOrUsernameExists)
         {
             return findEmailOrUsernameExists;
@@ -324,21 +324,21 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         {
             if (existingVrf)
             {
-                var vrfToBeUpdate = await context.Set<Verification>().Where(x => x.email == email && x.isValid == 1).FirstOrDefaultAsync();
+                var vrfToBeUpdate = await context.Set<Verification>().Where(x => x.email == accountSetupHelper.email && x.isValid == 1).FirstOrDefaultAsync();
                 vrfToBeUpdate.resendCount = vrfToBeUpdate.resendCount + 1;
                 vrfToBeUpdate.code = code;
-                await SendEmailSMTPWithCode(email, code, "STI Monitoring System Account Activation Code");
+                await SendEmailSMTPWithCode(accountSetupHelper.email, code, "STI Monitoring System Account Activation Code");
                 await context.SaveChangesAsync();
                 return findEmailOrUsernameExists;
             }
             else
             {
                 verification.code = code;
-                verification.email = email;
+                verification.email = accountSetupHelper.email;
                 verification.resendCount = 1;
                 verification.isValid = 1;
                 verification.type = "email";
-                await SendEmailSMTPWithCode(email, code, "STI Monitoring System Account Activation Code");
+                await SendEmailSMTPWithCode(accountSetupHelper.email, code, "STI Monitoring System Account Activation Code");
                 await context.AddAsync(verification);
                 await context.SaveChangesAsync();
                 return findEmailOrUsernameExists;
