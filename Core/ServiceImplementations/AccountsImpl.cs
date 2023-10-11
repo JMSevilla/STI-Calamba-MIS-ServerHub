@@ -210,7 +210,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
         smtp.Disconnect(true);*/
-        var rGetKey = await context.Set<MailGunSecuredApiKey>()
+        /*var rGetKey = await context.Set<MailGunSecuredApiKey>()
             .Where(x => x._apistatus == ApiStatus.ACTIVE)
             .FirstOrDefaultAsync();
         string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
@@ -234,7 +234,41 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             client.Authenticate("postmaster@" + rGetKey.domain, rGetKey.key);
             client.Send(mail);
             client.Disconnect(true);
-        }
+        }*/
+        // Create a RestClient with the base URL
+        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
+        StreamReader str = new StreamReader(FilePath);
+        string MailText = str.ReadToEnd();
+        str.Close();
+        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
+            .Replace("[body]", body);
+        var mail = new MimeMessage();
+        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
+        mail.To.Add(MailboxAddress.Parse(email));
+        mail.Subject = $"Welcome {email}";
+        var builder = new BodyBuilder();
+        builder.HtmlBody = MailText;
+        mail.Body = builder.ToMessageBody();
+        var rGetKey = await context.Set<MailGunSecuredApiKey>()
+            .Where(x => x._apistatus == ApiStatus.ACTIVE)
+            .FirstOrDefaultAsync();
+        RestClient client = new RestClient("https://api.mailgun.net/v3");
+
+        // Create a RestRequest for sending an email
+        RestRequest request = new RestRequest($"{rGetKey.domain}/messages", Method.Post);
+        request.AddParameter("domain", "YOUR_DOMAIN_NAME", ParameterType.UrlSegment);
+        request.AddParameter("from", $"devopsbyte60@gmail.com");
+        request.AddParameter("to", email);
+        request.AddParameter("to", email);
+        request.AddParameter("subject", "STI System Email Notification");
+        request.AddParameter("html", MailText);
+
+        // Set your Mailgun API key in the request headers
+        request.AddHeader("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes($"api:{rGetKey.key}")));
+
+        // Execute the request
+        await client.ExecuteAsync(request);
+        
     }
 
     public JwtSecurityToken CreateToken(List<Claim> claims)
