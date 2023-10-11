@@ -12,8 +12,8 @@ using sti_sys_backend.DB;
 namespace sti_sys_backend.Migrations
 {
     [DbContext(typeof(DatabaseQueryable))]
-    [Migration("20231011142914_AuthenticationMechanisms")]
-    partial class AuthenticationMechanisms
+    [Migration("20231011153234_localmechanisms")]
+    partial class localmechanisms
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

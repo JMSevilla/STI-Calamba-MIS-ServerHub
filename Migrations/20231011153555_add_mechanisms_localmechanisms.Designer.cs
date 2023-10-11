@@ -12,8 +12,8 @@ using sti_sys_backend.DB;
 namespace sti_sys_backend.Migrations
 {
     [DbContext(typeof(DatabaseQueryable))]
-    [Migration("20231011103106_initialMigrationProd")]
-    partial class initialMigrationProd
+    [Migration("20231011153555_add_mechanisms_localmechanisms")]
+    partial class add_mechanisms_localmechanisms
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -470,6 +470,32 @@ namespace sti_sys_backend.Migrations
                     b.HasKey("id");
 
                     b.ToTable("leave_meeting_logs");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.MailGunSecuredApiKey", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AuthenticationMechanisms")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("_apistatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("domain")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("mail_gun_secured");
                 });
 
             modelBuilder.Entity("sti_sys_backend.Models.MeetingActionsLogs", b =>

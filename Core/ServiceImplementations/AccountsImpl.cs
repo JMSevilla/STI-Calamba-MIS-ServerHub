@@ -221,6 +221,8 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             .Replace("[body]", body);
         var mail = new MimeMessage();
         var builder = new BodyBuilder();
+        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
+        mail.To.Add(MailboxAddress.Parse(email));
         builder.HtmlBody = MailText;
         mail.Subject = $"Welcome {email}";
         mail.Body = builder.ToMessageBody();
@@ -229,7 +231,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
             client.AuthenticationMechanisms.Remove(rGetKey.AuthenticationMechanisms);
-            client.Authenticate(rGetKey.domain, rGetKey.key);
+            client.Authenticate("postmaster@" + rGetKey.domain, rGetKey.key);
             client.Send(mail);
             client.Disconnect(true);
         }

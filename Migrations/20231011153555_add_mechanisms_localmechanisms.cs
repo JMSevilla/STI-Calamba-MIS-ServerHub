@@ -5,7 +5,7 @@
 namespace sti_sys_backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AuthenticationMechanisms : Migration
+    public partial class add_mechanisms_localmechanisms : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
