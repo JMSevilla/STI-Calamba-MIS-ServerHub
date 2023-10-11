@@ -12,8 +12,8 @@ using sti_sys_backend.DB;
 namespace sti_sys_backend.Migrations
 {
     [DbContext(typeof(DatabaseQueryable))]
-    [Migration("20230923103140_add_new_cols_pushnotif")]
-    partial class add_new_cols_pushnotif
+    [Migration("20231011103106_initialMigrationProd")]
+    partial class initialMigrationProd
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -257,6 +257,9 @@ namespace sti_sys_backend.Migrations
                     b.Property<string>("imgurl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("isNewAccount")
+                        .HasColumnType("int");
+
                     b.Property<string>("lastname")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -294,6 +297,30 @@ namespace sti_sys_backend.Migrations
                     b.ToTable("accounts");
                 });
 
+            modelBuilder.Entity("sti_sys_backend.Models.ActionsLogger", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("actionsMessage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("actions_logger");
+                });
+
             modelBuilder.Entity("sti_sys_backend.Models.ComLaboratory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -319,6 +346,44 @@ namespace sti_sys_backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("com_laboratory");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.ConferenceAuth", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<string>("access_token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("firstname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("isValid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("lastname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("refresh_token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("conference_auth");
                 });
 
             modelBuilder.Entity("sti_sys_backend.Models.Courses", b =>
@@ -348,6 +413,149 @@ namespace sti_sys_backend.Migrations
                     b.ToTable("courses");
                 });
 
+            modelBuilder.Entity("sti_sys_backend.Models.JoinedParticipants", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<int>("_joinedStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("comlabId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("date_joined")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("date_left")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("room_id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("id");
+
+                    b.ToTable("joined_participants");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.LeaveMeeting", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("firstname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("lastname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("leaveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("roomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("id");
+
+                    b.ToTable("leave_meeting_logs");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.MeetingActionsLogs", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("_meetingAuthorization")
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("logDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("log_message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("room_id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("violations")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("meeting_actions_logs");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.MeetingRoom", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("comlabId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("pushNotifs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("room_creator")
+                        .HasColumnType("int");
+
+                    b.Property<string>("room_description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("room_link")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("room_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("room_password")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("room_status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("room_type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("sectionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("meeting_room");
+                });
+
             modelBuilder.Entity("sti_sys_backend.Models.PC", b =>
                 {
                     b.Property<Guid>("Id")
@@ -370,6 +578,66 @@ namespace sti_sys_backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("pc");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.ProductivityManagement", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("TimeIn")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("TimeOut")
+                        .HasColumnType("time");
+
+                    b.Property<int>("_productivityStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("_status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("productivity_management");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.RecordJoinedParticipants", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<int>("_RecordJoinedStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("comlabId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("date_joined")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("date_left")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("room_id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("id");
+
+                    b.ToTable("record_joined_participants");
                 });
 
             modelBuilder.Entity("sti_sys_backend.Models.Sections", b =>
@@ -409,6 +677,21 @@ namespace sti_sys_backend.Migrations
                     b.HasKey("id");
 
                     b.ToTable("sections");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.Settings", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("roomSettings")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("application_settings");
                 });
 
             modelBuilder.Entity("sti_sys_backend.Models.TicketIssues", b =>
@@ -460,7 +743,6 @@ namespace sti_sys_backend.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("issue")
@@ -485,9 +767,8 @@ namespace sti_sys_backend.Migrations
                     b.Property<int>("requesterId")
                         .HasColumnType("int");
 
-                    b.Property<string>("specificAssignee")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("specificAssignee")
+                        .HasColumnType("int");
 
                     b.Property<string>("ticketId")
                         .IsRequired()
