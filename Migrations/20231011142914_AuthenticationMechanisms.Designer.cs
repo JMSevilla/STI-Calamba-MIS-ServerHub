@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using sti_sys_backend.DB;
 
@@ -11,9 +12,11 @@ using sti_sys_backend.DB;
 namespace sti_sys_backend.Migrations
 {
     [DbContext(typeof(DatabaseQueryable))]
-    partial class DatabaseQueryableModelSnapshot : ModelSnapshot
+    [Migration("20231011142914_AuthenticationMechanisms")]
+    partial class AuthenticationMechanisms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

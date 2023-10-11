@@ -228,7 +228,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         {
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
-            client.AuthenticationMechanisms.Remove("XOAUTH2");
+            client.AuthenticationMechanisms.Remove(rGetKey.AuthenticationMechanisms);
             client.Authenticate(rGetKey.domain, rGetKey.key);
             client.Send(mail);
             client.Disconnect(true);

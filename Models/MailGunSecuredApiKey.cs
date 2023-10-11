@@ -12,5 +12,6 @@ public class MailGunSecuredApiKey : IMailGunSecuredAPIKey
     public Guid id { get; set; }
     public string domain { get; set; }
     public string key { get; set; }
+    public string AuthenticationMechanisms { get; set; }
     public ApiStatus _apistatus { get; set; }
 }
