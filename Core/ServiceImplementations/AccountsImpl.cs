@@ -210,22 +210,23 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
         smtp.Disconnect(true);*/
-        MimeMessage mail = new MimeMessage();
-        mail.From.Add(new MailboxAddress("System Administrator",
-            "lizkiethbabael@gmail.com"));
-        mail.To.Add(new MailboxAddress("User",email));
-        mail.Subject = "System Email";
-        mail.Body = new TextPart("plain")
-        {
-            Text = @"ACCOUNT VERIFICATION OTP CODE" + code,
-        };
-                
+        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
+        StreamReader str = new StreamReader(FilePath);
+        string MailText = str.ReadToEnd();
+        str.Close();
+        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
+            .Replace("[body]", body);
+        var mail = new MimeMessage();
+        var builder = new BodyBuilder();
+        builder.HtmlBody = MailText;
+        mail.Subject = $"Welcome {email}";
+        mail.Body = builder.ToMessageBody();
         using (var client = new SmtpClient())
         {
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
             client.AuthenticationMechanisms.Remove("XOAUTH2");
-            client.Authenticate("postmaster@sandbox76f0892c8f43491abca4aacec7a62761.mailgun.org", "e02e4175a9cb273ad484d72c86679f9e-5465e583-65f29fa3");
+            client.Authenticate(_configuration["MailGun:UserName"], _configuration["MailGun:Password"]);
             client.Send(mail);
             client.Disconnect(true);
         }
