@@ -20,7 +20,9 @@ using System;
 using System.Linq.Dynamic.Core;
 using sti_sys_backend.Utilization.Login;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json;
 using sti_sys_backend.DataImplementations;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace sti_sys_backend.Core.ServiceImplementations;
 
@@ -93,6 +95,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.course_id = account.course_id;
                 account.status = 1;
                 account.verified = 0;
+                account.isNewAccount = 1;
                 account.mobileNumber = account.mobileNumber;
                 account.imgurl = "no-image-attached";
                 account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
@@ -119,6 +122,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.course_id = account.course_id;
                 account.status = 1;
                 account.verified = 0;
+                account.isNewAccount = 1;
                 account.mobileNumber = account.mobileNumber;
                 account.imgurl = "no-image-attached";
                 account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
@@ -315,8 +319,14 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         }
     }
 
+    class WorldTimeApiResponse
+    {
+        public string dateTime { get; set; }
+        public long unixtime { get; set; }
+    }
     public async Task<dynamic> AccountSigningIn(LoginParams loginParams)
     {
+        string apiUrl = "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Manila";
         var accounts = await _userManager.FindByNameAsync(loginParams.username);
         if(accounts == null)
         {
@@ -367,39 +377,71 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                         x.accountId == findAllAccountsDetails.id && x._status == Status.TIME_OUT);
                                 if (checkStudentProductivity)
                                 {
-                                    ProductivityManagement productivityManagement = new ProductivityManagement();
-                                    productivityManagement.accountId = findAllAccountsDetails.id;
-                                    productivityManagement._productivityStatus = ProductivityStatus.PENDING;
-                                    productivityManagement.TimeIn = DateTime.Now.TimeOfDay;
-                                    productivityManagement.TimeOut = TimeSpan.Zero;
-                                    productivityManagement._status = Status.TIME_IN;
-                                    productivityManagement.Date = DateTime.Now;
-                                    await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
-                                    await context.SaveChangesAsync();
+                                    using (HttpClient httpClient = new HttpClient())
+                                    {
+                                        
+                                        HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+                                        if (response.IsSuccessStatusCode)
+                                        {
+                                            string responseContent = await response.Content.ReadAsStringAsync();
+                                            WorldTimeApiResponse worldTimeApiResponse =
+                                                JsonSerializer.Deserialize<WorldTimeApiResponse>(responseContent);
+                                            if (DateTimeOffset.TryParse(worldTimeApiResponse.dateTime,
+                                                    out DateTimeOffset dateTimeOffset))
+                                            {
+                                                TimeSpan currentTime = dateTimeOffset.TimeOfDay;
+                                                ProductivityManagement productivityManagement = new ProductivityManagement();
+                                                productivityManagement.accountId = findAllAccountsDetails.id;
+                                                productivityManagement._productivityStatus = ProductivityStatus.PENDING;
+                                                productivityManagement.TimeIn = currentTime;
+                                                productivityManagement.TimeOut = TimeSpan.Zero;
+                                                productivityManagement._status = Status.TIME_IN;
+                                                productivityManagement.Date = dateTimeOffset.DateTime;
+                                                await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
+                                                await context.SaveChangesAsync();
+                                            }
+                                        }
+                                    }
                                 }
                                 
                             }
                             else
                             {
                                 // insert all new attendance
-                                ProductivityManagement productivityManagement = new ProductivityManagement();
-                                productivityManagement.accountId = findAllAccountsDetails.id;
-                                productivityManagement._productivityStatus = ProductivityStatus.PENDING;
-                                productivityManagement.TimeIn = DateTime.Now.TimeOfDay;
-                                productivityManagement.TimeOut = TimeSpan.Zero;
-                                productivityManagement._status = Status.TIME_IN;
-                                productivityManagement.Date = DateTime.Now;
-                                await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
-                                await context.SaveChangesAsync();
+                                 using (HttpClient httpClient = new HttpClient())
+                                    {
+                                        HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+                                        if (response.IsSuccessStatusCode)
+                                        {
+                                            string responseContent = await response.Content.ReadAsStringAsync();
+                                            WorldTimeApiResponse worldTimeApiResponse =
+                                                JsonSerializer.Deserialize<WorldTimeApiResponse>(responseContent);
+                                            if (DateTimeOffset.TryParse(worldTimeApiResponse.dateTime,
+                                                    out DateTimeOffset dateTimeOffset))
+                                            {
+                                                TimeSpan currentTime = dateTimeOffset.TimeOfDay;
+                                                
+                                                ProductivityManagement productivityManagement = new ProductivityManagement();
+                                                productivityManagement.accountId = findAllAccountsDetails.id;
+                                                productivityManagement._productivityStatus = ProductivityStatus.PENDING;
+                                                productivityManagement.TimeIn = currentTime;
+                                                productivityManagement.TimeOut = TimeSpan.Zero;
+                                                productivityManagement._status = Status.TIME_IN;
+                                                productivityManagement.Date = dateTimeOffset.DateTime;
+                                                await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
+                                                await context.SaveChangesAsync();
+                                            }
+                                        }
+                                    }
                             }
                         }
 
                         await PostActionsLogger(new ActionsLogger()
                         {
                             accountId = findAllAccountsDetails.id,
-                            actionsMessage = "This account has been logged in :" + DateTime.Today,
-                            created_at = DateTime.Today,
-                            updated_at = DateTime.Today
+                            actionsMessage = "This account has been logged in",
+                            created_at = DateTime.Now,
+                            updated_at = DateTime.Now
                         });
                         var dictateReferences = await context.Set<TEntity>()
                             .Where(x => x.username == loginParams.username && x.status == 1).Select(x => new
@@ -445,7 +487,15 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
     {
        var user = await _userManager.FindByNameAsync(username);
         if (user == null) return "must_bad_req";
-
+        var foundAccountFromDB = await context.Set<TEntity>()
+            .Where(x => x.username == username).FirstOrDefaultAsync();
+        await PostActionsLogger(new ActionsLogger()
+        {
+            accountId = foundAccountFromDB.id,
+            actionsMessage = "This account has been logged out",
+            created_at = DateTime.Now,
+            updated_at = DateTime.Now
+        });
         user.RefreshToken = null;
         await _userManager.UpdateAsync(user);
         return 200;
@@ -572,6 +622,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.course_id = account.course_id;
                 account.status = 1;
                 account.verified = 0;
+                account.isNewAccount = 1;
                 account.mobileNumber = account.mobileNumber;
                 account.imgurl = "no-image-attached";
                 account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
@@ -598,6 +649,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.course_id = account.course_id;
                 account.status = 1;
                 account.verified = 0;
+                account.isNewAccount = 1;
                 account.mobileNumber = account.mobileNumber;
                 account.imgurl = "no-image-attached";
                 account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
@@ -639,17 +691,37 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
 
     public async Task<dynamic> TimeoutProductivity(int accountId)
     {
+        string apiUrl = "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Manila";
         bool lookForTimeInToday = await context.Set<ProductivityManagement>()
             .AnyAsync(x => x.accountId == accountId && x._status == Status.TIME_IN);
         if (lookForTimeInToday)
         {
-            var needToTimeOut = await context.Set<ProductivityManagement>()
-                .Where(x => x.accountId == accountId && x._status == Status.TIME_IN)
-                .FirstOrDefaultAsync();
-            needToTimeOut.TimeOut = DateTime.Now.TimeOfDay;
-            needToTimeOut._status = Status.TIME_OUT;
-            await context.SaveChangesAsync();
-            return 200;
+            using (HttpClient httpClient = new HttpClient())
+            {
+                
+                HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    WorldTimeApiResponse worldTimeApiResponse =
+                        JsonSerializer.Deserialize<WorldTimeApiResponse>(responseContent);
+                    if (DateTimeOffset.TryParse(worldTimeApiResponse.dateTime,
+                            out DateTimeOffset dateTimeOffset))
+                    {
+                        TimeSpan currentTime = dateTimeOffset.TimeOfDay;
+                        
+                        var needToTimeOut = await context.Set<ProductivityManagement>()
+                            .Where(x => x.accountId == accountId && x._status == Status.TIME_IN)
+                            .FirstOrDefaultAsync();
+                        needToTimeOut.TimeOut = currentTime;
+                        needToTimeOut._status = Status.TIME_OUT;
+                        await context.SaveChangesAsync();
+                        return 200;
+                    }
+                }
+
+                return 400;
+            }
         }
         else
         {
@@ -707,15 +779,34 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                     foundExistingAccount.lastname = string.IsNullOrEmpty(profileBasicDetails.lastname)
                         ? foundExistingAccount.lastname
                         : profileBasicDetails.lastname;
+                    foundExistingAccount.imgurl = profileBasicDetails.imgurl;
+                    if (foundExistingAccount.username != profileBasicDetails.username)
+                    {
+                        var updaterUsernameJwt = await _userManager.FindByNameAsync(foundExistingAccount.username);
+                        bool checkIfUsernameExist = await context.Set<TEntity>()
+                            .AnyAsync(x => x.username == profileBasicDetails.username);
+                        if (checkIfUsernameExist)
+                        {
+                            return 403;
+                        }
+
+                        if (updaterUsernameJwt != null)
+                        {
+                            updaterUsernameJwt.UserName = profileBasicDetails.username;
+                            updaterUsernameJwt.NormalizedUserName = profileBasicDetails.username;
+                            await _userManager.UpdateAsync(updaterUsernameJwt);
+                        }
+                    }
                     foundExistingAccount.username = string.IsNullOrEmpty(profileBasicDetails.username)
                         ? foundExistingAccount.username
                         : profileBasicDetails.username;
-                    foundExistingAccount.imgurl = profileBasicDetails.imgurl;
                     if (foundExistingAccount.email != profileBasicDetails.email)
                     {
                         var updaterJwt = await _userManager.FindByEmailAsync(foundExistingAccount.email);
+                       
                         bool checkIfEmailIsExist = await context.Set<TEntity>()
                             .AnyAsync(x => x.email == profileBasicDetails.email);
+                        
                         if (checkIfEmailIsExist)
                         {
                             return 403;
@@ -724,6 +815,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                         if (updaterJwt != null)
                         {
                             updaterJwt.Email = profileBasicDetails.email;
+                            updaterJwt.NormalizedEmail = profileBasicDetails.email;
                             var updateResult = await _userManager.UpdateAsync(updaterJwt);
                             if (updateResult.Succeeded)
                             {
@@ -772,29 +864,6 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                         foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
                             ? foundExistingAccount.email
                             : profileBasicDetails.email;
-                    }
-
-                    if (foundExistingAccount.username != profileBasicDetails.username)
-                    {
-                        var updaterJwt = await _userManager.FindByNameAsync(profileBasicDetails.username);
-                        bool checkIfEmailIsExist = await context.Set<TEntity>()
-                            .AnyAsync(x => x.username == profileBasicDetails.username);
-                        if (checkIfEmailIsExist)
-                        {
-                            return 403;
-                        }
-
-                        updaterJwt.UserName = profileBasicDetails.username;
-                        await _userManager.UpdateAsync(updaterJwt);
-                        foundExistingAccount.username = string.IsNullOrEmpty(profileBasicDetails.username)
-                            ? foundExistingAccount.username
-                            : profileBasicDetails.username;
-                    }
-                    else
-                    {
-                        foundExistingAccount.username = string.IsNullOrEmpty(profileBasicDetails.username)
-                            ? foundExistingAccount.username
-                            : profileBasicDetails.username;
                     }
                     await context.SaveChangesAsync();
                     var dictateReferences = await context.Set<TEntity>()
@@ -915,6 +984,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 var user = await _userManager.FindByEmailAsync(securityAndPassword.email);
                 if (user == null) throw new ArgumentNullException(nameof(user));
                 accountStorage.password = BCrypt.Net.BCrypt.HashPassword(securityAndPassword.newPassword);
+                accountStorage.isNewAccount = 0;
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var result = await _userManager.ResetPasswordAsync(user, code, securityAndPassword.newPassword);
                 if (!result.Succeeded)
@@ -1113,6 +1183,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             var user = await _userManager.FindByEmailAsync(securityAndPasswordFp.email);
             if (user == null) throw new ArgumentNullException(nameof(user));
             foundAccount.password = BCrypt.Net.BCrypt.HashPassword(securityAndPasswordFp.password);
+            foundAccount.isNewAccount = 0;
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, code, securityAndPasswordFp.password);
             if (!result.Succeeded)
@@ -1174,5 +1245,54 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         await context.Set<ActionsLogger>().AddAsync(actionsLogger);
         await context.SaveChangesAsync();
         return 200;
+    }
+
+    public async Task<dynamic> GetActionsLogger(int accountId)
+    {
+        var result = await context.Set<ActionsLogger>()
+            .Where(x => x.accountId == accountId)
+            .OrderByDescending(t => t.created_at).ToListAsync();
+        return result;
+    }
+
+    public async Task<dynamic> GetAccountsDetails(int accountId)
+    {
+        bool accountChecks = await context.Set<TEntity>()
+            .AnyAsync(x => x.id == accountId);
+        if (accountChecks)
+        {
+            var result = await context.Set<TEntity>()
+                .Where(x => x.id == accountId)
+                .Select(account => new
+                {
+                    account.id,
+                    account.imgurl,
+                    account.firstname,
+                    account.lastname,
+                    account.access_level,
+                    account.course_id,
+                    account.section,
+                    account.email,
+                    account.username,
+                    account.status,
+                    account.verified
+                }).ToListAsync();
+            return result;
+        }
+
+        return 404;
+    }
+
+    public async Task<bool> IsNewAccount(int id)
+    {
+        bool result = await context.Set<TEntity>().AnyAsync(x => x.id == id && x.isNewAccount == 1);
+        return result;
+    }
+
+    public async Task<bool> IsNotVerified(int id)
+    {
+        bool AccountNotVerified = await context.Set<TEntity>()
+            .AnyAsync(x => x.id == id && x.verified == 0);
+        return AccountNotVerified;
     }
 }

@@ -31,6 +31,7 @@ public class Accounts : DataImplementations.Accounts
     public int verified { get; set; }
     public int access_level { get; set; }
     public int section { get; set; }
+    public int isNewAccount { get; set; }
     public DateTime created_at { get; set; }
     public DateTime updated_at { get; set; }
     public int course_id { get; set; }

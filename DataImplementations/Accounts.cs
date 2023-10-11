@@ -16,6 +16,7 @@ public interface Accounts
     int access_level { get; set; }
     int section { get; set; }
     int course_id { get; set; }
+    int isNewAccount { get; set; }
     DateTime created_at { get; set; }
     DateTime updated_at { get; set; }
 }

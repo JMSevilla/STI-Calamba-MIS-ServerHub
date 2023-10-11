@@ -612,5 +612,20 @@ namespace sti_sys_backend.Core.ServiceImplementations
             await _context.SaveChangesAsync();
             return 200;
         }
+
+        public async Task<dynamic> RemoveRoom(Guid id)
+        {
+            var result = await _context.Set<TEntity>()
+                .Where(x => x.id == id)
+                .FirstOrDefaultAsync();
+            if (result != null)
+            {
+                _context.Remove(result);
+                await _context.SaveChangesAsync();
+                return 200;
+            }
+
+            return 404;
+        }
     }
 }

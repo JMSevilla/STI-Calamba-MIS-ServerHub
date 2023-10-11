@@ -38,5 +38,6 @@ namespace sti_sys_backend.Core.Services
         public Task<dynamic> RemoveTicketIssuesCategory(Guid id);
         public Task<dynamic> FetchAffectedAccountsOnCourseDeletion(int courseId);
         public Task<dynamic> LeftMeetingPermanentLogs(RecordJoinedParticipants recordJoinedParticipants);
+        public Task<dynamic> RemoveRoom(Guid id);
     }
 }

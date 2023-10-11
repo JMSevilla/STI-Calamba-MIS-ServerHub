@@ -286,4 +286,36 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         var result = await _repository.PostActionsLogger(actionsLogger);
         return Ok(result);
     }
+
+    [Route("get-account-details/{accountId}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAccountsDetails([FromRoute] int accountId)
+    {
+        var result = await _repository.GetAccountsDetails(accountId);
+        return Ok(result);
+    }
+
+    [Route("get-actions-logger/{id}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetActionsLogger([FromRoute] int id)
+    {
+        var result = await _repository.GetActionsLogger(id);
+        return Ok(result);
+    }
+
+    [Route("detect-new-account/{id}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> DetectNewAccount([FromRoute] int id)
+    {
+        bool result = await _repository.IsNewAccount(id);
+        return Ok(result);
+    }
+
+    [Route("detect-account-unverified/{id}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> DetectAccountUnverified([FromRoute] int id)
+    {
+        bool result = await _repository.IsNotVerified(id);
+        return Ok(result);
+    }
 }

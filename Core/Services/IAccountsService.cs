@@ -57,4 +57,8 @@ public interface IAccountsService<T> where T: class, Accounts
     public Task<dynamic> DisableAccount(int accountId);
     public Task<dynamic> WatchAccountDisabling(int accountId);
     public Task<dynamic> PostActionsLogger(ActionsLogger actionsLogger);
+    public Task<dynamic> GetActionsLogger(int accountId);
+    public Task<dynamic> GetAccountsDetails(int accountId);
+    public Task<bool> IsNewAccount(int id);
+    public Task<bool> IsNotVerified(int id);
 }

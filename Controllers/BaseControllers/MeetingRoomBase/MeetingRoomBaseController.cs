@@ -220,5 +220,13 @@ namespace sti_sys_backend.Controllers.BaseControllers.MeetingRoomBase
             var result = await _repository.RecordListParticipantsLeft(room_id);
             return Ok(result);
         }
+
+        [Route("remove-room/{id}"), HttpDelete]
+        [AllowAnonymous]
+        public async Task<IActionResult> RemoveRevokedRoom([FromRoute] Guid id)
+        {
+            var result = await _repository.RemoveRoom(id);
+            return Ok(result);
+        }
     }
 }
