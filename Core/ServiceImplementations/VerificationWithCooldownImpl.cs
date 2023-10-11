@@ -211,6 +211,9 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
             client.Send(mail);
             client.Disconnect(true);
         }*/
+        var rGetKey = await context.Set<MailGunSecuredApiKey>()
+            .Where(x => x._apistatus == ApiStatus.ACTIVE)
+            .FirstOrDefaultAsync();
         ConfigurationManager _configuration = new ConfigurationManager();
         string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
@@ -227,8 +230,8 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         {
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect("smtp.mailgun.org", 587, false);
-            client.AuthenticationMechanisms.Remove("XOAUTH2");
-            client.Authenticate(_configuration["MailGun:UserName"], _configuration["MailGun:Password"]);
+            client.AuthenticationMechanisms.Remove(rGetKey.AuthenticationMechanisms);
+            client.Authenticate(rGetKey.domain, rGetKey.key);
             client.Send(mail);
             client.Disconnect(true);
         }
