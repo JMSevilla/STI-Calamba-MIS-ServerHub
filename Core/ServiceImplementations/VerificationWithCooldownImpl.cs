@@ -196,16 +196,20 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
             .Replace("[body]", body);
         var mail = new MimeMessage();
-        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-        mail.To.Add(MailboxAddress.Parse(email));
-        mail.Subject = $"Welcome {email}";
+        mail.From.Add(new MailboxAddress("STI System Email Sender", "devopsbyte@sandbox4ff74236e60d4ed9a9f6c2f33489d01b.mailgun.org"));
+        mail.To.Add(new MailboxAddress("STI System Email Sender", email));
+        mail.Subject = "Email System";
         var builder = new BodyBuilder();
         builder.HtmlBody = MailText;
         mail.Body = builder.ToMessageBody();
-        using var smtp = new SmtpClient();
-        smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
-        smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
-        await smtp.SendAsync(mail);
-        smtp.Disconnect(true);
+        using (var client = new SmtpClient())
+        {
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+            client.Connect("smtp.mailgun.org", 587, false);
+            client.AuthenticationMechanisms.Remove("XOAUTH2");
+            client.Authenticate("postmaster@sandbox4ff74236e60d4ed9a9f6c2f33489d01b.mailgun.org", "c86e6ce46a3185f83b818e06569ee292-5465e583-5d6ced1f");
+            client.Send(mail);
+            client.Disconnect(true);
+        }
     }
 }
