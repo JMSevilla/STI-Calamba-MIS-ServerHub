@@ -202,7 +202,7 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
 
     public async Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper)
     {
-        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
+        /*string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
         str.Close();
@@ -219,8 +219,8 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
-        smtp.Disconnect(true);
-        /*var rGetKey = await context.Set<MailGunSecuredApiKey>()
+        smtp.Disconnect(true);*/
+        var rGetKey = await context.Set<MailGunSecuredApiKey>()
             .Where(x => x._apistatus == ApiStatus.ACTIVE)
             .FirstOrDefaultAsync();
         var apiKey = rGetKey.domain;
@@ -245,6 +245,6 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
 </body>
 </html>";
         var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-        await client.SendEmailAsync(msg);*/
+        await client.SendEmailAsync(msg);
     }
 }
