@@ -206,7 +206,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
 
     public async Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper)
     {
-        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
+        /*string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
         str.Close();
@@ -223,9 +223,9 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
-        smtp.Disconnect(true);
+        smtp.Disconnect(true);*/
         // Create a RestClient with the base URL
-        /*try
+        try
         {
             var rGetKey = await context.Set<MailGunSecuredApiKey>()
                 .Where(x => x._apistatus == ApiStatus.ACTIVE)
@@ -257,7 +257,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         catch (Exception e)
         {
             throw e;
-        }*/
+        }
     }
 
     public JwtSecurityToken CreateToken(List<Claim> claims)
