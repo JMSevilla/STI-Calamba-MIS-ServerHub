@@ -133,9 +133,12 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
                     sentCount.resendCount = sentCount.resendCount + 1;
                     sentCount.createdAt = DateTime.Today;
                     await SendEmailSMTPWithCode(
-                        email,
-                        code,
-                        "Kindly use this code to verify your account"
+                        new SendEmailHelper()
+                        {
+                            email = email,
+                            code = code,
+                            body= "Kindly use this code to verify your account"
+                        }
                     );
                     await context.SaveChangesAsync();
                     dynobj.cooldown = findCooldown.cooldown;
@@ -155,9 +158,12 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
                         sentCount.resendCount = sentCount.resendCount + 1;
                         sentCount.createdAt = DateTime.Today;
                         await SendEmailSMTPWithCode(
-                            email,
-                            code,
-                            "Kindly use this code to verify your account"
+                            new SendEmailHelper()
+                            {
+                                email = email,
+                                code = code,
+                                body= "Kindly use this code to verify your account"
+                            }
                         );
                         await context.SaveChangesAsync();
                         return 200;
@@ -183,15 +189,18 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
             await context.Verifications.AddAsync(verification);
             await context.SaveChangesAsync();
             await SendEmailSMTPWithCode(
-                            email,
-                            code,
-                            "Kindly use this code to verify your account"
+                new SendEmailHelper()
+                {
+                    email = email,
+                    code = code,
+                    body= "Kindly use this code to verify your account"
+                }
             );
             return 200;
         }
     }
 
-    public async Task SendEmailSMTPWithCode(string email, int code, string? body)
+    public async Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper)
     {
         /*string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
@@ -219,12 +228,12 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
         str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
-            .Replace("[body]", body);
+        MailText = MailText.Replace("[username]", "User").Replace("[email]", sendEmailHelper.email).Replace("[verificationCode]", Convert.ToString(sendEmailHelper.code))
+            .Replace("[body]", sendEmailHelper.body);
         var mail = new MimeMessage();
         mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-        mail.To.Add(MailboxAddress.Parse(email));
-        mail.Subject = $"Welcome {email}";
+        mail.To.Add(MailboxAddress.Parse(sendEmailHelper.email));
+        mail.Subject = $"Welcome {sendEmailHelper.email}";
         var builder = new BodyBuilder();
         builder.HtmlBody = MailText;
         mail.Body = builder.ToMessageBody();
@@ -235,7 +244,7 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         var client = new SendGridClient(apiKey);
         var from = new EmailAddress("lizkiethbabael@gmail.com", "STI System");
         var subject = "STI System Notification";
-        var to = new EmailAddress(email, "User");
+        var to = new EmailAddress(sendEmailHelper.email, "User");
         var plainTextContent = "STI SYSTEM NOTIFICATIONS";
         var htmlContent = MailText;
         var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
