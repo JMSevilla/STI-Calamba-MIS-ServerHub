@@ -6,12 +6,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using RestSharp;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using sti_sys_backend.Core.Services;
 using sti_sys_backend.DataImplementations;
 using sti_sys_backend.DB;
 using sti_sys_backend.Models;
 using sti_sys_backend.Utilization;
-using sti_sys_backend.Utilization.MailDto;
+using MailSettings = sti_sys_backend.Utilization.MailDto.MailSettings;
 
 namespace sti_sys_backend.Core.ServiceImplementations;
 
@@ -229,21 +231,18 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         var rGetKey = await context.Set<MailGunSecuredApiKey>()
             .Where(x => x._apistatus == ApiStatus.ACTIVE)
             .FirstOrDefaultAsync();
-        RestClient client = new RestClient("https://api.mailgun.net/v3");
-
-        // Create a RestRequest for sending an email
-        RestRequest request = new RestRequest($"{rGetKey.domain}/messages", Method.Post);
-        request.AddParameter("domain", "YOUR_DOMAIN_NAME", ParameterType.UrlSegment);
-        request.AddParameter("from", $"devopsbyte60@gmail.com");
-        request.AddParameter("to", email);
-        request.AddParameter("to", email);
-        request.AddParameter("subject", "STI System Email Notification");
-        request.AddParameter("html", MailText);
-
-        // Set your Mailgun API key in the request headers
-        request.AddHeader("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes($"api:{rGetKey.key}")));
-
-        // Execute the request
-        await client.ExecuteAsync(request);
+        var apiKey = rGetKey.domain;
+        var client = new SendGridClient(apiKey);
+        var from = new EmailAddress("lizkiethbabael@gmail.com", "STI System");
+        var subject = "STI System Notification";
+        var to = new EmailAddress(email, "User");
+        var plainTextContent = "STI SYSTEM NOTIFICATIONS";
+        var htmlContent = MailText;
+        var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+        var response = await client.SendEmailAsync(msg);
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
     }
 }
