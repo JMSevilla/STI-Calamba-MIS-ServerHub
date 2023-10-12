@@ -106,11 +106,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 await context.Set<TEntity>().AddAsync(account);
                 await context.SaveChangesAsync();
-                await SendEmailSMTPWithCode(
-                        account.email,
-                        code,
-                        "This is your activation code"
-                    );
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = account.email,
+                    code = code,
+                    body = "This is your activation code"
+                });
                 return 200;
             }
             else
@@ -141,11 +142,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 await context.Set<Verification>().AddAsync(verification);
                 await context.Set<TEntity>().AddAsync(account);
                 await context.SaveChangesAsync();
-                await SendEmailSMTPWithCode(
-                        account.email,
-                        code,
-                        "This is your activation code"
-                    );
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = account.email,
+                    code = code,
+                    body = "This is your activation code"
+                });
                 return 200;
             }
         }
@@ -192,7 +194,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         }
     }
 
-    public async Task SendEmailSMTPWithCode(string email, int code, string? body)
+    public async Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper)
     {
         /*string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
@@ -242,12 +244,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
         str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
-            .Replace("[body]", body);
+        MailText = MailText.Replace("[username]", "User").Replace("[email]", sendEmailHelper.email).Replace("[verificationCode]", Convert.ToString(sendEmailHelper.code))
+            .Replace("[body]", sendEmailHelper.body);
         var mail = new MimeMessage();
         mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-        mail.To.Add(MailboxAddress.Parse(email));
-        mail.Subject = $"Welcome {email}";
+        mail.To.Add(MailboxAddress.Parse(sendEmailHelper.email));
+        mail.Subject = $"Welcome {sendEmailHelper.email}";
         var builder = new BodyBuilder();
         builder.HtmlBody = MailText;
         mail.Body = builder.ToMessageBody();
@@ -258,7 +260,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         var client = new SendGridClient(apiKey);
         var from = new EmailAddress("lizkiethbabael@gmail.com", "STI System");
         var subject = "STI System Notification";
-        var to = new EmailAddress(email, "User");
+        var to = new EmailAddress(sendEmailHelper.email, "User");
         var plainTextContent = "STI SYSTEM NOTIFICATIONS";
         var htmlContent = MailText;
         var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
@@ -359,7 +361,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 var vrfToBeUpdate = await context.Set<Verification>().Where(x => x.email == accountSetupHelper.email && x.isValid == 1).FirstOrDefaultAsync();
                 vrfToBeUpdate.resendCount = vrfToBeUpdate.resendCount + 1;
                 vrfToBeUpdate.code = code;
-                await SendEmailSMTPWithCode(accountSetupHelper.email, code, "STI Monitoring System Account Activation Code");
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = accountSetupHelper.email,
+                    code = code,
+                    body = "STI Monitoring System Account Activation Code"
+                });
                 await context.SaveChangesAsync();
                 return findEmailOrUsernameExists;
             }
@@ -370,7 +377,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 verification.resendCount = 1;
                 verification.isValid = 1;
                 verification.type = "email";
-                await SendEmailSMTPWithCode(accountSetupHelper.email, code, "STI Monitoring System Account Activation Code");
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = accountSetupHelper.email,
+                    code = code,
+                    body = "STI Monitoring System Account Activation Code"
+                });
                 await context.AddAsync(verification);
                 await context.SaveChangesAsync();
                 return findEmailOrUsernameExists;
@@ -610,11 +622,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             foundExistingVerification.code = code;
             foundExistingVerification.resendCount = foundExistingVerification.resendCount + 1;
             await context.SaveChangesAsync();
-            await SendEmailSMTPWithCode(
-                accountResendOtpParams.email,
-                code,
-                "This is your activation code"
-                );
+            await SendEmailSMTPWithCode(new SendEmailHelper()
+            {
+                email = accountResendOtpParams.email,
+                code = code,
+                body = "This is your activation code"
+            });
             return 200;
         } 
         else
@@ -630,11 +643,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             verification.updatedAt = DateTime.Now;
             await context.Set<Verification>().AddAsync(verification);
             await context.SaveChangesAsync();
-            await SendEmailSMTPWithCode(
-                accountResendOtpParams.email,
-                code,
-                "This is your activation code"
-                );
+            await SendEmailSMTPWithCode(new SendEmailHelper()
+            {
+                email = accountResendOtpParams.email,
+                code = code,
+                body = "This is your activation code"
+            });
             return 200;
         }
     }
@@ -688,11 +702,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 await context.Set<TEntity>().AddAsync(account);
                 await context.SaveChangesAsync();
-                await SendEmailSMTPWithCode(
-                        account.email,
-                        code,
-                        "This is your activation code"
-                    );
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = account.email,
+                    code = code,
+                    body = "This is your activation code"
+                });
                 return 200;
             }
             else
@@ -723,11 +738,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 await context.Set<Verification>().AddAsync(verification);
                 await context.Set<TEntity>().AddAsync(account);
                 await context.SaveChangesAsync();
-                await SendEmailSMTPWithCode(
-                        account.email,
-                        code,
-                        "This is your activation code"
-                    );
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = account.email,
+                    code = code,
+                    body = "This is your activation code"
+                });
                 return 200;
             }
         }
@@ -891,9 +907,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                         ? foundExistingAccount.email
                                         : profileBasicDetails.email;
                                     foundExistingAccount.verified = 0;
-                                    
-                                    await SendEmailSMTPWithCode(profileBasicDetails.email, code,
-                                        "STI Monitoring System Account Activation Code");
+                                    await SendEmailSMTPWithCode(new SendEmailHelper()
+                                    {
+                                        email = profileBasicDetails.email,
+                                        code = code,
+                                        body = "STI Monitoring System Account Activation Code"
+                                    });
                                     expandedObj.logoutRequired = true;
                                 }
                                 else
@@ -911,8 +930,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                         : profileBasicDetails.email;
                                     foundExistingAccount.verified = 0;
                                     
-                                    await SendEmailSMTPWithCode(profileBasicDetails.email, code,
-                                        "STI Monitoring System Account Activation Code");
+                                    await SendEmailSMTPWithCode(new SendEmailHelper()
+                                    {
+                                        email = profileBasicDetails.email,
+                                        code = code,
+                                        body = "STI Monitoring System Account Activation Code"
+                                    });
                                     expandedObj.logoutRequired = true;
                                 }
                             }
@@ -1174,7 +1197,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                     checkVerification.resendCount = checkVerification.resendCount + 1;
                     checkVerification.code = code;
                     await context.SaveChangesAsync();
-                    await SendEmailSMTPWithCode(email, code, "Forgot password OTP Code");
+                    await SendEmailSMTPWithCode(new SendEmailHelper()
+                    {
+                        email = email,
+                        code = code,
+                        body = "Forgot password OTP Code"
+                    });
                     return 200;
                 }
             }
@@ -1189,7 +1217,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 verification.updatedAt = DateTime.Today;
                 await context.Set<Verification>().AddAsync(verification);
                 await context.SaveChangesAsync();
-                await SendEmailSMTPWithCode(email, code, "Forgot password OTP Code");
+                await SendEmailSMTPWithCode(new SendEmailHelper()
+                {
+                    email = email,
+                    code = code,
+                    body = "Forgot password OTP Code"
+                });
                 return 200;
             }
         }

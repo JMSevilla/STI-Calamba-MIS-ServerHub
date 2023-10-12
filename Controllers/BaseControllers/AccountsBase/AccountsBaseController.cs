@@ -321,9 +321,9 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
 
     [Route("email-test-send"), HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> SendSMTP([FromRoute] string email, [FromRoute] int code, [FromRoute] string? body)
+    public async Task<IActionResult> SendSMTP([FromBody] SendEmailHelper sendEmailHelper)
     {
-        await _repository.SendEmailSMTPWithCode(email, code, body);
+        await _repository.SendEmailSMTPWithCode(sendEmailHelper);
         return Ok(200);
     }
 }
