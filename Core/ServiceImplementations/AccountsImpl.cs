@@ -228,7 +228,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         try
         {
             var rGetKey = await context.Set<MailGunSecuredApiKey>()
-                .Where(x => x._apistatus == ApiStatus.ACTIVE)
+                .Where(x => x.AuthenticationMechanisms == "XOAUTH2")
                 .FirstOrDefaultAsync();
             var apiKey = rGetKey.domain;
             var client = new SendGridClient(apiKey);
