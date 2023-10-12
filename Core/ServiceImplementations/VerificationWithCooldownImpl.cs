@@ -229,7 +229,7 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
             .FirstOrDefaultAsync();
         var apiKey = rGetKey.domain;
         var client = new SendGridClient(apiKey);
-        var from = new EmailAddress("lizkiethbabael@gmail.com", "STI System");
+        var from = new EmailAddress("bertserrano67@gmail.com", "STI System");
         var subject = "STI System Notification";
         var to = new EmailAddress(sendEmailHelper.email, "User");
         var plainTextContent = "STI SYSTEM NOTIFICATIONS";
