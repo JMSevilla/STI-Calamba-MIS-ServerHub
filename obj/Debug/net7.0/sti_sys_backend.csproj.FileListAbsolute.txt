@@ -153,3 +153,5 @@ C:\Users\jm4583104\RiderProjects\sti_sys_backend\sti_sys_backend\obj\Debug\net7.
 C:\Users\jm4583104\RiderProjects\sti_sys_backend\sti_sys_backend\bin\Debug\net7.0\Newtonsoft.Json.dll
 C:\Users\jm4583104\RiderProjects\sti_sys_backend\sti_sys_backend\bin\Debug\net7.0\RestSharp.dll
 C:\Users\jm4583104\RiderProjects\sti_sys_backend\sti_sys_backend\bin\Debug\net7.0\System.Text.Json.dll
+C:\Users\jm4583104\RiderProjects\sti_sys_backend\sti_sys_backend\bin\Debug\net7.0\SendGrid.dll
+C:\Users\jm4583104\RiderProjects\sti_sys_backend\sti_sys_backend\bin\Debug\net7.0\StarkbankEcdsa.dll
