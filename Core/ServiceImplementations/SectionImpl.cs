@@ -4,6 +4,7 @@ using sti_sys_backend.Core.Services;
 using sti_sys_backend.DataImplementations;
 using sti_sys_backend.DB;
 using sti_sys_backend.Models;
+using sti_sys_backend.Utilization;
 
 namespace sti_sys_backend.Core.ServiceImplementations
 {
@@ -37,14 +38,16 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> createSection(TEntity section)
         {
+            WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+            DateTime currentDate = await worldTimeApi.ConfigureDateTime();
             bool checkSectionExists = await _context.Set<TEntity>().AnyAsync(
                 x => x.section_id == section.section_id || x.sectionName == section.sectionName);
             if (checkSectionExists)
             {
                 return 403;
             }
-            section.created_at = DateTime.Now;
-            section.updated_at = DateTime.Now;
+            section.created_at = currentDate;
+            section.updated_at = currentDate;
             await _context.Set<TEntity>().AddAsync(section);
             await _context.SaveChangesAsync();
             return 200;

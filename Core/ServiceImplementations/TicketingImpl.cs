@@ -4,6 +4,7 @@ using sti_sys_backend.Core.Services;
 using sti_sys_backend.DataImplementations;
 using sti_sys_backend.DB;
 using sti_sys_backend.Models;
+using sti_sys_backend.Utilization;
 using Accounts = sti_sys_backend.Models.Accounts;
 
 namespace sti_sys_backend.Core.ServiceImplementations
@@ -97,9 +98,11 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> CreateTicket(Ticketing ticketing)
         {
+            WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+            DateTime currentDate = await worldTimeApi.ConfigureDateTime();
             ticketing.pushNotif = 1;
-            ticketing.created_at = DateTime.Now;
-            ticketing.updated_at = DateTime.Now;
+            ticketing.created_at = currentDate;
+            ticketing.updated_at = currentDate;
             await _context.Set<Ticketing>().AddAsync(ticketing);
             await _context.SaveChangesAsync();
             return 200;
