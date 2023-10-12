@@ -32,4 +32,5 @@ public class DatabaseQueryable : IdentityDbContext<JWTIdentity>
     public DbSet<RecordJoinedParticipants> RecordJoinedParticipantsEnumerable { get; set; }
     public DbSet<ActionsLogger> ActionsLoggers { get; set; }
     public DbSet<MailGunSecuredApiKey> MailGunSecuredApiKeys { get; set; }
+    public DbSet<JitsiPrivateKey> JitsiPrivateKeys { get; set; }
 }

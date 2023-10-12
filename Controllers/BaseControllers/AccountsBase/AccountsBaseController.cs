@@ -77,7 +77,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
     [AllowAnonymous]
     [ProducesResponseType(403)]
     [ProducesResponseType(200)]
-    public async Task<IActionResult> ModeratorCreation(TEntity entity)
+    public async Task<IActionResult> ModeratorCreation(AccountsHelper entity)
     {
         var result = (await _repository.CreateModerator(entity));
         return Ok(result);

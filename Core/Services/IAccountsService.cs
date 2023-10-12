@@ -21,7 +21,7 @@ public interface IAccountsService<T> where T: class, Accounts
     public Task<Boolean> findEmail(AccountSetupHelper accountSetupHelper);
     public Task<dynamic> AccountSigningIn(LoginParams loginParams);
     public Task<dynamic> Revoke(string username);
-    public Task<dynamic> CreateModerator(T account);
+    public Task<dynamic> CreateModerator(AccountsHelper account);
     public Task<dynamic> CreateStudent(T account);
     public Task<List<T>> ListOfAccounts(List<int> access_levels);
     public Task<dynamic> AccountDeletionToArchive(int id);

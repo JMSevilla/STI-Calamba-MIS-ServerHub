@@ -202,29 +202,25 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
 
     public async Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper)
     {
-        /*string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
+        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
         str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
-            .Replace("[body]", body);
+        MailText = MailText.Replace("[username]", "User").Replace("[email]", sendEmailHelper.email).Replace("[verificationCode]", Convert.ToString(sendEmailHelper.code))
+            .Replace("[body]", sendEmailHelper.body);
         var mail = new MimeMessage();
-        mail.From.Add(new MailboxAddress("STI System Email Sender", "devopsbyte@sandbox4ff74236e60d4ed9a9f6c2f33489d01b.mailgun.org"));
-        mail.To.Add(new MailboxAddress("STI System Email Sender", email));
-        mail.Subject = "Email System";
+        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
+        mail.To.Add(MailboxAddress.Parse(sendEmailHelper.email));
+        mail.Subject = $"Welcome {sendEmailHelper.email}";
         var builder = new BodyBuilder();
         builder.HtmlBody = MailText;
         mail.Body = builder.ToMessageBody();
-        using (var client = new SmtpClient())
-        {
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-            client.Connect("smtp.mailgun.org", 587, false);
-            client.AuthenticationMechanisms.Remove("XOAUTH2");
-            client.Authenticate("postmaster@sandbox4ff74236e60d4ed9a9f6c2f33489d01b.mailgun.org", "c86e6ce46a3185f83b818e06569ee292-5465e583-5d6ced1f");
-            client.Send(mail);
-            client.Disconnect(true);
-        }*/
-        var rGetKey = await context.Set<MailGunSecuredApiKey>()
+        using var smtp = new SmtpClient();
+        smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
+        smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
+        await smtp.SendAsync(mail);
+        smtp.Disconnect(true);
+        /*var rGetKey = await context.Set<MailGunSecuredApiKey>()
             .Where(x => x._apistatus == ApiStatus.ACTIVE)
             .FirstOrDefaultAsync();
         var apiKey = rGetKey.domain;
@@ -249,6 +245,6 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
 </body>
 </html>";
         var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-        await client.SendEmailAsync(msg);
+        await client.SendEmailAsync(msg);*/
     }
 }
