@@ -496,12 +496,14 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                             }
                         }
 
+                        WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+                        DateTime currentDate = await worldTimeApi.ConfigureDateTime();
                         await PostActionsLogger(new ActionsLogger()
                         {
                             accountId = findAllAccountsDetails.id,
                             actionsMessage = "This account has been logged in",
-                            created_at = DateTime.Now,
-                            updated_at = DateTime.Now
+                            created_at = currentDate,
+                            updated_at = currentDate
                         });
                         var dictateReferences = await context.Set<TEntity>()
                             .Where(x => x.username == loginParams.username && x.status == 1).Select(x => new
@@ -549,12 +551,14 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         if (user == null) return "must_bad_req";
         var foundAccountFromDB = await context.Set<TEntity>()
             .Where(x => x.username == username).FirstOrDefaultAsync();
+        WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+        DateTime currentDate = await worldTimeApi.ConfigureDateTime();
         await PostActionsLogger(new ActionsLogger()
         {
             accountId = foundAccountFromDB.id,
             actionsMessage = "This account has been logged out",
-            created_at = DateTime.Now,
-            updated_at = DateTime.Now
+            created_at = currentDate,
+            updated_at = currentDate
         });
         user.RefreshToken = null;
         await _userManager.UpdateAsync(user);
