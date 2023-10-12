@@ -242,29 +242,17 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         // Create a RestClient with the base URL
         try
         {
-            string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
-            StreamReader str = new StreamReader(FilePath);
-            string MailText = str.ReadToEnd();
-            str.Close();
-            MailText = MailText.Replace("[username]", "User").Replace("[email]", sendEmailHelper.email).Replace("[verificationCode]", Convert.ToString(sendEmailHelper.code))
-                .Replace("[body]", sendEmailHelper.body);
-            var mail = new MimeMessage();
-            mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-            mail.To.Add(MailboxAddress.Parse(sendEmailHelper.email));
-            mail.Subject = $"Welcome {sendEmailHelper.email}";
-            var builder = new BodyBuilder();
-            builder.HtmlBody = MailText;
-            mail.Body = builder.ToMessageBody();
+            
             var rGetKey = await context.Set<MailGunSecuredApiKey>()
                 .Where(x => x._apistatus == ApiStatus.ACTIVE)
                 .FirstOrDefaultAsync();
             var apiKey = rGetKey.domain;
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("lizkiethbabael@gmail.com", "STI System");
+            var from = new EmailAddress("devopsbyte60@gmail.com", "STI System");
             var subject = "STI System Notification";
             var to = new EmailAddress(sendEmailHelper.email, "User");
             var plainTextContent = "STI SYSTEM NOTIFICATIONS";
-            var htmlContent = MailText;
+            var htmlContent = $"<strong>STI OTP Code: {sendEmailHelper.code}</strong>";
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
             var result = await client.SendEmailAsync(msg);
             return result;
