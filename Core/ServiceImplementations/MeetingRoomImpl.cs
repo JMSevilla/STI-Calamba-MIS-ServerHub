@@ -35,14 +35,16 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> createRoom(TEntity room)
         {
+            WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+            DateTime currentDate = await worldTimeApi.ConfigureDateTime();
             if (!string.IsNullOrEmpty(room.room_password))
             {
                 string hashedRoomPassword = BCrypt.Net.BCrypt.HashPassword(room.room_password);
                 room.room_password = hashedRoomPassword;
             }
             room.pushNotifs = 1;
-            room.created_at = DateTime.Now;
-            room.updated_at = DateTime.Now;
+            room.created_at = currentDate;
+            room.updated_at = currentDate;
             await _context.Set<TEntity>().AddAsync(room);
             await _context.SaveChangesAsync();
             dynamic obj = new ExpandoObject();
@@ -212,13 +214,15 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> JoinedParticipantsLogs(JoinedParticipants joinedParticipants)
         {
+            WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+            DateTime currentDate = await worldTimeApi.ConfigureDateTime();
             RecordJoinedParticipants recordJoinedParticipants = new RecordJoinedParticipants();
             recordJoinedParticipants.room_id = joinedParticipants.room_id;
             recordJoinedParticipants.accountId = joinedParticipants.accountId;
             recordJoinedParticipants._RecordJoinedStatus = 0;
             recordJoinedParticipants.comlabId = joinedParticipants.comlabId;
-            recordJoinedParticipants.date_joined = DateTime.Now;
-            joinedParticipants.date_joined = DateTime.Now;
+            recordJoinedParticipants.date_joined = currentDate;
+            joinedParticipants.date_joined = currentDate;
             await _context.Set<JoinedParticipants>().AddAsync(joinedParticipants);
             await _context.Set<RecordJoinedParticipants>().AddAsync(recordJoinedParticipants);
             await _context.SaveChangesAsync();
@@ -631,10 +635,12 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> LeftMeetingPermanentLogs(RecordJoinedParticipants recordJoinedParticipants)
         {
+            WorldTimeAPI worldTimeApi = new WorldTimeAPI();
+            DateTime currentDate = await worldTimeApi.ConfigureDateTime();
             recordJoinedParticipants.room_id = recordJoinedParticipants.room_id;
             recordJoinedParticipants.comlabId = recordJoinedParticipants.comlabId;
             recordJoinedParticipants.accountId = recordJoinedParticipants.accountId;
-            recordJoinedParticipants.date_left = DateTime.Now;
+            recordJoinedParticipants.date_left = currentDate;
             recordJoinedParticipants._RecordJoinedStatus = RecordJoinedStatus.LEFT;
             await _context.Set<RecordJoinedParticipants>().AddAsync(recordJoinedParticipants);
             await _context.SaveChangesAsync();
