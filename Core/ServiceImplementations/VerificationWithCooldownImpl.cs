@@ -221,7 +221,7 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         await smtp.SendAsync(mail);
         smtp.Disconnect(true);*/
         var rGetKey = await context.Set<MailGunSecuredApiKey>()
-            .Where(x => x._apistatus == ApiStatus.ACTIVE)
+            .Where(x => x.AuthenticationMechanisms == "XOAUTH2")
             .FirstOrDefaultAsync();
         var apiKey = rGetKey.domain;
         var client = new SendGridClient(apiKey);
