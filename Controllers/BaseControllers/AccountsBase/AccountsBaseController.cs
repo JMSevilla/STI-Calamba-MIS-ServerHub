@@ -323,7 +323,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
     [AllowAnonymous]
     public async Task<IActionResult> SendSMTP([FromBody] SendEmailHelper sendEmailHelper)
     {
-        await _repository.SendEmailSMTPWithCode(sendEmailHelper);
-        return Ok(200);
+        var result = await _repository.SendEmailSMTPWithCode(sendEmailHelper);
+        return Ok(result);
     }
 }
