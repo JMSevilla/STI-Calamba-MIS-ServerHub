@@ -13,7 +13,7 @@ public interface IAccountsService<T> where T: class, Accounts
 {
     public Task<Boolean> lookForAccountsToBeSetup();
     public Task<dynamic> AccountSetupCreation(T accounts);
-    public Task<dynamic> SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper);
+    public Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper);
     public JwtSecurityToken CreateToken(List<Claim> claims);
     public String GenerateRefreshToken();
     public Task<dynamic> RefreshToken(AccessWithRefresh accessWithRefresh);

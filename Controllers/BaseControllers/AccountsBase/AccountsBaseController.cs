@@ -32,7 +32,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         return Ok(result);
     }
 
-    [Route("map-primary-check"), HttpGet, HttpPut, HttpPost]
+    [Route("map-primary-check"), HttpPost]
     [AllowAnonymous]
     public async Task<IActionResult> MapEmails([FromBody] AccountSetupHelper accountSetupHelper)
     {
@@ -323,7 +323,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
     [AllowAnonymous]
     public async Task<IActionResult> SendSMTP([FromBody] SendEmailHelper sendEmailHelper)
     {
-        var result = await _repository.SendEmailSMTPWithCode(sendEmailHelper);
-        return Ok(result);
+        await _repository.SendEmailSMTPWithCode(sendEmailHelper);
+        return Ok(200);
     }
 }
