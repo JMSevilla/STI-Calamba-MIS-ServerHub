@@ -26,6 +26,7 @@ using RestSharp;
 using RestSharp.Authenticators;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using Accounts = sti_sys_backend.Models.Accounts;
 using MailSettings = sti_sys_backend.Utilization.MailDto.MailSettings;
 
 namespace sti_sys_backend.Core.ServiceImplementations;
@@ -57,10 +58,11 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         bool found = await context.AccountsEnumerable.AnyAsync();
         return found;
     }
-    public async Task<dynamic> CreateModerator(TEntity account)
+    public async Task<dynamic> CreateModerator(AccountsHelper account)
     {
+        Accounts accounts = new Accounts();
         bool foundAccountModerator = await context.Set<TEntity>()
-            .AnyAsync(x => x.username == account.username || x.email == account.email && x.access_level == 2);
+            .AnyAsync(x => x.username == account.username || x.email == account.email && x.access_level == account.type);
         var accountExists = await _userManager.FindByEmailAsync(account.email);
         if(foundAccountModerator)
         {
@@ -82,70 +84,78 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             
             if (isThereAnyVerificationsFromDB)
             {
-                int code = int.Parse(GenerateVerificationCode.GenerateCode());
+                string code = GenerateVerificationCode.GenerateCode();
                 var whenVerificationsExists = await context.Set<Verification>()
                 .Where(x => x.email == account.email && x.isValid == 1).FirstOrDefaultAsync();
                 
                 whenVerificationsExists.resendCount = whenVerificationsExists.resendCount + 1;
-                whenVerificationsExists.code = code;
+                whenVerificationsExists.code = Convert.ToInt32(code);
                 var result = await _userManager.CreateAsync(user, account.password);
                 if (!result.Succeeded)
                     return "password_too_weak";
                 
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(account.password);
-                account.password = hashedPassword;
-                account.access_level = 2;
-                account.section = account.section;
-                account.course_id = account.course_id;
-                account.status = 1;
-                account.verified = 0;
-                account.isNewAccount = 1;
-                account.mobileNumber = account.mobileNumber;
-                account.imgurl = "no-image-attached";
-                account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
-                account.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
-                await context.Set<TEntity>().AddAsync(account);
+                accounts.password = hashedPassword;
+                accounts.access_level = account.type;
+                accounts.section = account.section;
+                accounts.course_id = account.course_id;
+                accounts.status = 1;
+                accounts.verified = 0;
+                accounts.isNewAccount = 1;
+                accounts.mobileNumber = account.mobileNumber;
+                accounts.imgurl = "no-image";
+                accounts.email = account.email;
+                accounts.firstname = account.firstname;
+                accounts.middlename = account.middlename;
+                accounts.lastname = account.lastname;
+                accounts.username = account.username;
+                await context.Set<Accounts>().AddAsync(accounts);
                 await context.SaveChangesAsync();
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = account.email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "This is your activation code"
                 });
                 return 200;
             }
             else
             {
-                int code = int.Parse(GenerateVerificationCode.GenerateCode());
+                string code = GenerateVerificationCode.GenerateCode();
                 var result = await _userManager.CreateAsync(user, account.password);
                 if (!result.Succeeded)
                     return "password_too_weak";
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(account.password);
-                account.password = hashedPassword;
-                account.access_level = 2;
-                account.section = account.section;
-                account.course_id = account.course_id;
-                account.status = 1;
-                account.verified = 0;
-                account.isNewAccount = 1;
-                account.mobileNumber = account.mobileNumber;
-                account.imgurl = "no-image-attached";
-                account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
-                account.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
+                accounts.password = hashedPassword;
+                accounts.access_level = account.type;
+                accounts.section = account.section;
+                accounts.course_id = account.course_id;
+                accounts.status = 1;
+                accounts.verified = 0;
+                accounts.isNewAccount = 1;
+                accounts.mobileNumber = account.mobileNumber;
+                accounts.imgurl = "no-image";
+                accounts.email = account.email;
+                accounts.firstname = account.firstname;
+                accounts.middlename = account.middlename;
+                accounts.lastname = account.lastname;
+                accounts.username = account.username;
+                accounts.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
+                accounts.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 verification.email = account.email;
-                verification.code = code;
+                verification.code = Convert.ToInt32(code);
                 verification.resendCount = 1;
                 verification.isValid = 1;
                 verification.type = "email";
                 verification.createdAt = DateTime.Now;
                 verification.updatedAt = DateTime.Now;
                 await context.Set<Verification>().AddAsync(verification);
-                await context.Set<TEntity>().AddAsync(account);
+                await context.Set<Accounts>().AddAsync(accounts);
                 await context.SaveChangesAsync();
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = account.email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "This is your activation code"
                 });
                 return 200;
@@ -185,7 +195,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             accounts.status = 1;
             accounts.verified = 1;
             accounts.mobileNumber = accounts.mobileNumber;
-            accounts.imgurl = "no-image-attached";
+            accounts.imgurl = "no-image";
             accounts.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
             accounts.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
             await context.Set<TEntity>().AddAsync(accounts);
@@ -196,16 +206,16 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
 
     public async Task SendEmailSMTPWithCode(SendEmailHelper sendEmailHelper)
     {
-        /*string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
+        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
         StreamReader str = new StreamReader(FilePath);
         string MailText = str.ReadToEnd();
         str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
-            .Replace("[body]", body);
+        MailText = MailText.Replace("[username]", "User").Replace("[email]", sendEmailHelper.email).Replace("[verificationCode]", Convert.ToString(sendEmailHelper.code))
+            .Replace("[body]", sendEmailHelper.body);
         var mail = new MimeMessage();
         mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-        mail.To.Add(MailboxAddress.Parse(email));
-        mail.Subject = $"Welcome {email}";
+        mail.To.Add(MailboxAddress.Parse(sendEmailHelper.email));
+        mail.Subject = $"Welcome {sendEmailHelper.email}";
         var builder = new BodyBuilder();
         builder.HtmlBody = MailText;
         mail.Body = builder.ToMessageBody();
@@ -213,34 +223,9 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
         smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
         await smtp.SendAsync(mail);
-        smtp.Disconnect(true);*/
-        /*var rGetKey = await context.Set<MailGunSecuredApiKey>()
-            .Where(x => x._apistatus == ApiStatus.ACTIVE)
-            .FirstOrDefaultAsync();
-        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
-        StreamReader str = new StreamReader(FilePath);
-        string MailText = str.ReadToEnd();
-        str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", email).Replace("[verificationCode]", Convert.ToString(code))
-            .Replace("[body]", body);
-        var mail = new MimeMessage();
-        var builder = new BodyBuilder();
-        mail.From.Add(new MailboxAddress("System Administrator", "devopsbyte60@" + rGetKey.domain));
-        mail.To.Add(new MailboxAddress("User", email));
-        builder.HtmlBody = MailText;
-        mail.Subject = $"Welcome {email}";
-        mail.Body = builder.ToMessageBody();
-        using (var client = new SmtpClient())
-        {
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-            client.Connect("smtp.mailgun.org", 587, false);
-            client.AuthenticationMechanisms.Remove(rGetKey.AuthenticationMechanisms);
-            client.Authenticate("postmaster@" + rGetKey.domain, rGetKey.key);
-            client.Send(mail);
-            client.Disconnect(true);
-        }*/
+        smtp.Disconnect(true);
         // Create a RestClient with the base URL
-        try
+        /*try
         {
             var rGetKey = await context.Set<MailGunSecuredApiKey>()
                 .Where(x => x._apistatus == ApiStatus.ACTIVE)
@@ -272,7 +257,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         catch (Exception e)
         {
             throw e;
-        }
+        }*/
     }
 
     public JwtSecurityToken CreateToken(List<Claim> claims)
@@ -351,7 +336,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
     public async Task<bool> findEmail(AccountSetupHelper accountSetupHelper)
     {
         Verification verification = new Verification();
-        int code = int.Parse(GenerateVerificationCode.GenerateCode());
+        string code = GenerateVerificationCode.GenerateCode();
         bool existingVrf = await context.Set<Verification>().AnyAsync(x => x.email == accountSetupHelper.email && x.isValid == 1);
         bool findEmailOrUsernameExists = await context.Set<TEntity>().AnyAsync(x => x.username == accountSetupHelper.username || x.email == accountSetupHelper.email);
         if(findEmailOrUsernameExists)
@@ -364,11 +349,11 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             {
                 var vrfToBeUpdate = await context.Set<Verification>().Where(x => x.email == accountSetupHelper.email && x.isValid == 1).FirstOrDefaultAsync();
                 vrfToBeUpdate.resendCount = vrfToBeUpdate.resendCount + 1;
-                vrfToBeUpdate.code = code;
+                vrfToBeUpdate.code = Convert.ToInt32(code);
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = accountSetupHelper.email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "STI Monitoring System Account Activation Code"
                 });
                 await context.SaveChangesAsync();
@@ -376,7 +361,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             }
             else
             {
-                verification.code = code;
+                verification.code = Convert.ToInt32(code);
                 verification.email = accountSetupHelper.email;
                 verification.resendCount = 1;
                 verification.isValid = 1;
@@ -384,7 +369,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = accountSetupHelper.email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "STI Monitoring System Account Activation Code"
                 });
                 await context.AddAsync(verification);
@@ -619,29 +604,29 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             .AnyAsync (x => x.email == accountResendOtpParams.email && x.isValid == 1);
         if (findAnyExistingVerifications)
         {
-            int code = int.Parse(GenerateVerificationCode.GenerateCode());
+            string code = GenerateVerificationCode.GenerateCode();
             var foundExistingVerification = await context.Set<Verification>()
                 .Where(x => x.email == accountResendOtpParams.email && x.isValid == 1).FirstOrDefaultAsync();
             /* verification resend count validation can do here. */
-            foundExistingVerification.code = code;
+            foundExistingVerification.code = Convert.ToInt32(code);
             foundExistingVerification.resendCount = foundExistingVerification.resendCount + 1;
             await context.SaveChangesAsync();
             await SendEmailSMTPWithCode(new SendEmailHelper()
             {
                 email = accountResendOtpParams.email,
-                code = code,
+                code = Convert.ToInt32(code),
                 body = "This is your activation code"
             });
             return 200;
         } 
         else
         {
-            int code = int.Parse(GenerateVerificationCode.GenerateCode());
+            string code = GenerateVerificationCode.GenerateCode();
             Verification verification = new Verification();
             verification.email = accountResendOtpParams.email;
             verification.isValid = 1;
             verification.resendCount = 1;
-            verification.code = code;
+            verification.code = Convert.ToInt32(code);
             verification.type = "email";
             verification.createdAt = DateTime.Now;
             verification.updatedAt = DateTime.Now;
@@ -650,7 +635,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             await SendEmailSMTPWithCode(new SendEmailHelper()
             {
                 email = accountResendOtpParams.email,
-                code = code,
+                code = Convert.ToInt32(code),
                 body = "This is your activation code"
             });
             return 200;
@@ -682,12 +667,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
 
             if (isThereAnyVerificationsFromDB)
             {
-                int code = int.Parse(GenerateVerificationCode.GenerateCode());
+                string code = GenerateVerificationCode.GenerateCode();
                 var whenVerificationsExists = await context.Set<Verification>()
                 .Where(x => x.email == account.email && x.isValid == 1).FirstOrDefaultAsync();
 
                 whenVerificationsExists.resendCount = whenVerificationsExists.resendCount + 1;
-                whenVerificationsExists.code = code;
+                whenVerificationsExists.code = Convert.ToInt32(code);
                 var result = await _userManager.CreateAsync(user, account.password);
                 if (!result.Succeeded)
                     return "password_too_weak";
@@ -701,7 +686,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.verified = 0;
                 account.isNewAccount = 1;
                 account.mobileNumber = account.mobileNumber;
-                account.imgurl = "no-image-attached";
+                account.imgurl = "no-image";
                 account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 account.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 await context.Set<TEntity>().AddAsync(account);
@@ -709,14 +694,14 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = account.email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "This is your activation code"
                 });
                 return 200;
             }
             else
             {
-                int code = int.Parse(GenerateVerificationCode.GenerateCode());
+                string code = GenerateVerificationCode.GenerateCode();
                 var result = await _userManager.CreateAsync(user, account.password);
                 if (!result.Succeeded)
                     return "password_too_weak";
@@ -729,11 +714,11 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 account.verified = 0;
                 account.isNewAccount = 1;
                 account.mobileNumber = account.mobileNumber;
-                account.imgurl = "no-image-attached";
+                account.imgurl = "no-image";
                 account.created_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 account.updated_at = Convert.ToDateTime(System.DateTime.Now.ToString("MM/dd/yyyy"));
                 verification.email = account.email;
-                verification.code = code;
+                verification.code = Convert.ToInt32(code);
                 verification.resendCount = 1;
                 verification.isValid = 1;
                 verification.type = "email";
@@ -745,7 +730,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = account.email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "This is your activation code"
                 });
                 return 200;
@@ -898,14 +883,14 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                             var updateResult = await _userManager.UpdateAsync(updaterJwt);
                             if (updateResult.Succeeded)
                             {
-                                int code = int.Parse(GenerateVerificationCode.GenerateCode());
+                                string code = GenerateVerificationCode.GenerateCode();
                                 Verification verification = new Verification();
                                 var checkVerification = await context.Set<Verification>()
                                     .Where(x => x.email == profileBasicDetails.email
                                                    && x.isValid == 1).FirstOrDefaultAsync();
                                 if (checkVerification != null)
                                 {
-                                    checkVerification.code = code;
+                                    checkVerification.code = Convert.ToInt32(code);
                                     checkVerification.resendCount = checkVerification.resendCount + 1;
                                     foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
                                         ? foundExistingAccount.email
@@ -914,7 +899,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                     await SendEmailSMTPWithCode(new SendEmailHelper()
                                     {
                                         email = profileBasicDetails.email,
-                                        code = code,
+                                        code = Convert.ToInt32(code),
                                         body = "STI Monitoring System Account Activation Code"
                                     });
                                     expandedObj.logoutRequired = true;
@@ -922,7 +907,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                 else
                                 {
                                     verification.email = profileBasicDetails.email;
-                                    verification.code = code;
+                                    verification.code = Convert.ToInt32(code);
                                     verification.resendCount = 1;
                                     verification.isValid = 1;
                                     verification.type = "email";
@@ -937,7 +922,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                     await SendEmailSMTPWithCode(new SendEmailHelper()
                                     {
                                         email = profileBasicDetails.email,
-                                        code = code,
+                                        code = Convert.ToInt32(code),
                                         body = "STI Monitoring System Account Activation Code"
                                     });
                                     expandedObj.logoutRequired = true;
@@ -1183,7 +1168,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
     {
         bool checkEmailIfExist = await context.Set<TEntity>()
             .AnyAsync(x => x.email == email);
-        int code = int.Parse(GenerateVerificationCode.GenerateCode());
+        string code = GenerateVerificationCode.GenerateCode();
         Verification verification = new Verification();
         if (checkEmailIfExist)
         {
@@ -1199,12 +1184,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 else
                 {
                     checkVerification.resendCount = checkVerification.resendCount + 1;
-                    checkVerification.code = code;
+                    checkVerification.code = Convert.ToInt32(code);
                     await context.SaveChangesAsync();
                     await SendEmailSMTPWithCode(new SendEmailHelper()
                     {
                         email = email,
-                        code = code,
+                        code = Convert.ToInt32(code),
                         body = "Forgot password OTP Code"
                     });
                     return 200;
@@ -1213,7 +1198,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             else
             {
                 verification.email = email;
-                verification.code = code;
+                verification.code = Convert.ToInt32(code);
                 verification.isValid = 1;
                 verification.resendCount = 0;
                 verification.type = "email";
@@ -1224,7 +1209,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 await SendEmailSMTPWithCode(new SendEmailHelper()
                 {
                     email = email,
-                    code = code,
+                    code = Convert.ToInt32(code),
                     body = "Forgot password OTP Code"
                 });
                 return 200;

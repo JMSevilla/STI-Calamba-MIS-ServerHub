@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1.Pkcs;
 using sti_sys_backend.Core.Services;
 using sti_sys_backend.DataImplementations;
 using sti_sys_backend.DB;
@@ -102,11 +103,35 @@ namespace sti_sys_backend.Core.ServiceImplementations
             rsaPrivateKey.ImportFromPem(privateKeyText);
             return rsaPrivateKey;
         }
+        public const string BEGIN_PKCS1_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----";
+        public const string END_PKCS1_PRIVATE_KEY = "-----END RSA PRIVATE KEY-----";
+        public const string BEGIN_PKCS8_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----";
+        public const string END_PKCS8_PRIVATE_KEY = "-----END PRIVATE KEY-----";
+        public static RSA ScanPrivateKey(string key, PKType pkType)
+        {
+            var rsa = RSA.Create();
+            var privateKey = key;
+            privateKey = privateKey.Replace(pkType == PKType.PKCS1 ? BEGIN_PKCS1_PRIVATE_KEY : BEGIN_PKCS8_PRIVATE_KEY,
+                "");
+            privateKey = privateKey.Replace(pkType == PKType.PKCS1 ? END_PKCS1_PRIVATE_KEY : END_PKCS8_PRIVATE_KEY, "");
+            var privateKeyDecoded = Convert.FromBase64String(privateKey);
+            if (pkType == PKType.PKCS1)
+            {
+                rsa.ImportRSAPrivateKey(privateKeyDecoded, out _);
+            }
+            else
+            {
+                rsa.ImportPkcs8PrivateKey(privateKeyDecoded, out _);
+            }
 
+            return rsa;
+        }
         public async Task<string> ModeratorMechanism(int userId, string userName, string userEmail, string roomName)
         {
+            var rgetKey = await _context.MailGunSecuredApiKeys.Where(x => x.AuthenticationMechanisms == "jitsi-key")
+                .FirstOrDefaultAsync();
             var jwtBuilder = JitsiServerSide.Builder();
-            var privateKey = JitsiServerSide.ReadPrivateKeyFromFile("Templates/jitsi_api_key.pk", PKType.PKCS8);
+            var privateKey = ScanPrivateKey(rgetKey.domain, PKType.PKCS8);
             jwtBuilder
                 .WithAudienceAndIssuer()
                 .WithApiKey("vpaas-magic-cookie-d912c09dfba74cf2b05fe117f76fafd1/33de9d")
@@ -121,16 +146,19 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 .WithModerator(true)
                 .WithRoomName("*")
                 .WithUserId(Convert.ToString(userId));
-
+            
             // Sign the JWT token
             var jwtToken = jwtBuilder.SignWith(privateKey);
             return jwtToken;
+            
         }
 
         public async Task<string> ParticipantsMechanism(int userId, string userName, string userEmail, string roomName)
         {
+            var rgetKey = await _context.MailGunSecuredApiKeys.Where(x => x.AuthenticationMechanisms == "jitsi-key")
+                .FirstOrDefaultAsync();
             var jwtBuilder = JitsiServerSide.Builder();
-            var privateKey = JitsiServerSide.ReadPrivateKeyFromFile("Templates/jitsi_api_key.pk", PKType.PKCS8);
+            var privateKey = ScanPrivateKey(rgetKey.domain, PKType.PKCS8);
             jwtBuilder
                 .WithAudienceAndIssuer()
                 .WithApiKey("vpaas-magic-cookie-d912c09dfba74cf2b05fe117f76fafd1/33de9d")
