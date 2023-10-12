@@ -318,4 +318,12 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         bool result = await _repository.IsNotVerified(id);
         return Ok(result);
     }
+
+    [Route("email-test-send"), HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> SendSMTP([FromRoute] string email, [FromRoute] int code, [FromRoute] string? body)
+    {
+        await _repository.SendEmailSMTPWithCode(email, code, body);
+        return Ok(200);
+    }
 }
