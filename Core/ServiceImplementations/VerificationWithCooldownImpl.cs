@@ -224,19 +224,6 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
             client.Send(mail);
             client.Disconnect(true);
         }*/
-        string FilePath = Directory.GetCurrentDirectory() + "\\Templates\\emailTemplate.html";
-        StreamReader str = new StreamReader(FilePath);
-        string MailText = str.ReadToEnd();
-        str.Close();
-        MailText = MailText.Replace("[username]", "User").Replace("[email]", sendEmailHelper.email).Replace("[verificationCode]", Convert.ToString(sendEmailHelper.code))
-            .Replace("[body]", sendEmailHelper.body);
-        var mail = new MimeMessage();
-        mail.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-        mail.To.Add(MailboxAddress.Parse(sendEmailHelper.email));
-        mail.Subject = $"Welcome {sendEmailHelper.email}";
-        var builder = new BodyBuilder();
-        builder.HtmlBody = MailText;
-        mail.Body = builder.ToMessageBody();
         var rGetKey = await context.Set<MailGunSecuredApiKey>()
             .Where(x => x._apistatus == ApiStatus.ACTIVE)
             .FirstOrDefaultAsync();
@@ -246,7 +233,21 @@ public abstract class VerificationWithCooldownImpl<TEntity, TContext> : IVerific
         var subject = "STI System Notification";
         var to = new EmailAddress(sendEmailHelper.email, "User");
         var plainTextContent = "STI SYSTEM NOTIFICATIONS";
-        var htmlContent = MailText;
+        var htmlContent = @"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>OTP Email</title>
+</head>
+<body>
+    <div style=""text-align: center;"">
+        <h1>Your OTP Code</h1>
+        <p>Use the following code to verify your account:</p>
+        <h2 style=""color: #007bff;"">" + sendEmailHelper.code + @"</h2>
+    </div>
+</body>
+</html>";
         var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
         await client.SendEmailAsync(msg);
     }
