@@ -10,7 +10,7 @@ namespace sti_sys_backend.Core.Services
     {
         public Task<dynamic> createRoom(T room);
         public Task SendEmailNotification(string email, string? body);
-        public Task<dynamic> getAllRooms(int sectionId);
+        public Task<dynamic> getAllRooms(SectionsHelper sectionsHelper);
 
         public Task<dynamic> ModeratorReceiver(JwtJitsiServe jwtJitsiServe);
         public Task<dynamic> ParticipantsReceiver(JwtJitsiServe jwtJitsiServe);

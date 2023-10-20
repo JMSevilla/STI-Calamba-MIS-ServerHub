@@ -11,9 +11,9 @@ namespace sti_sys_backend.Core.Services
         public Task<int> findBigId();
         public Task<dynamic> createCourses(Courses courses);
         public Task<dynamic> findAllCourses();
-        public Task<List<Courses>> findAllCoursesByAcronyms(string acronyms);
+        public Task<List<CourseManagement>> findAllCoursesByAcronyms(string acronyms);
         public Task<dynamic> RemoveCourse(int id);
-        public Task<List<Courses>> getAllCoursesNonJoined();
-        public Task<List<T>> getAllSectionsNonJoined();
+        public Task<List<CourseManagement>> getAllCoursesNonJoined();
+        public Task<List<T>> getAllSectionsNonJoined(int course_id);
     }
 }

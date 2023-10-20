@@ -33,11 +33,11 @@ namespace sti_sys_backend.Controllers.BaseControllers.MeetingRoomBase
             return Ok(result);
         }
         
-        [Route("get-all-rooms/{sectionid}"), HttpGet]
+        [Route("get-all-rooms"), HttpGet, HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllRooms([FromRoute] int sectionid)
+        public async Task<IActionResult> GetAllRooms([FromBody] SectionsHelper sectionsHelper)
         {
-            var list = await _repository.getAllRooms(sectionid);
+            var list = await _repository.getAllRooms(sectionsHelper);
             return Ok(list);
         }
 

@@ -12,7 +12,7 @@ namespace sti_sys_backend.Models
         public Guid id { get; set; }
         public string room_name { get; set; }
         public string room_type { get; set; }
-        public int sectionId { get; set; }
+        public string sectionId { get; set; }
         public Guid comlabId { get; set; }
         public string room_link { get; set; }
         public int room_status { get; set; }

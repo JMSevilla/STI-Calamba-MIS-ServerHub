@@ -7,6 +7,7 @@ using sti_sys_backend.JWT;
 using sti_sys_backend.Models;
 using sti_sys_backend.Utilization;
 using sti_sys_backend.Utilization.Login;
+using Accounts = sti_sys_backend.Models.Accounts;
 
 namespace sti_sys_backend.Controllers.BaseControllers;
 
@@ -65,7 +66,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         return new ObjectResult(result);
     }
 
-    [Route("revoke-token/{username}"), HttpPost]
+    [Route("revoke-token/{username}"), HttpPost, HttpPut]
     [ProducesResponseType(200)]
     public async Task<IActionResult> RevokeToken([FromRoute] string username)
     {
@@ -188,9 +189,9 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         return Ok(result);
     }
 
-    [Route("student-attendance-initialized/{section}"), HttpGet]
+    [Route("student-attendance-initialized"), HttpGet, HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> StudentAttendanceInitialized([FromRoute] int section)
+    public async Task<IActionResult> StudentAttendanceInitialized([FromBody] SectionsHelper section)
     {
         var result = await _repository.StudentAttendanceReport(section);
         return Ok(result);
@@ -204,12 +205,11 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         return Ok(result);
     }
 
-    [Route("student-attendance-filtering/from/{from}/to/{to}/{section}"), HttpGet]
+    [Route("student-attendance-filtering/from/to"), HttpGet, HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> StudentReportFiltering([FromRoute] DateTime from, [FromRoute] DateTime to,
-        [FromRoute] int section)
+    public async Task<IActionResult> StudentReportFiltering([FromBody] SectionsHelper section)
     {
-        var result = await _repository.StudentAttendanceReportFilterFromAndTo(from, to, section);
+        var result = await _repository.StudentAttendanceReportFilterFromAndTo(section);
         return Ok(result);
     }
 
@@ -325,5 +325,109 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
     {
         await _repository.SendEmailSMTPWithCode(sendEmailHelper);
         return Ok(200);
+    }
+
+    [Route("archive-account/{id}"), HttpPut]
+    [AllowAnonymous]
+    public async Task<IActionResult> ArchiveAccount([FromRoute] int id)
+    {
+        var result = await _repository.AccountArchived(id);
+        return Ok(result);
+    }
+
+    [Route("list-of-archives/{access_level}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> ArchivedList([FromRoute] int access_level)
+    {
+        var result = await _repository.ListOfArchives(access_level);
+        return Ok(result);
+    }
+
+    [Route("recover-from-archives/{id}"), HttpPut]
+    [AllowAnonymous]
+    public async Task<IActionResult> RecoverFromArchives([FromRoute] int id)
+    {
+        var result = await _repository.RecoverFromArchived(id);
+        return Ok(result);
+    }
+
+    [Route("delete-account-permanently-check-history/{id}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> DeleteAccountPermanently([FromRoute] int id)
+    {
+        var result = await _repository.DeleteAccountPermanently(id);
+        return Ok(result);
+    }
+
+    [Route("delete-should-push/{id}"), HttpDelete]
+    [AllowAnonymous]
+    public async Task<IActionResult> DeletePermanentlyShouldBeInProgress([FromRoute] int id)
+    {
+        var result = await _repository.DeletionInProgress(id);
+        return Ok(result);
+    }
+
+    [Route("accounts-by-course/{courseId}/{section_id}"), HttpGet]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = (typeof(List<Accounts>)))]
+    public async Task<IActionResult> AccountsByCourse([FromRoute] int courseId, [FromRoute] int? section_id)
+    {
+        var list = await _repository.AccountsListByCourse(courseId, section_id ?? 0);
+        return Ok(list);
+    }
+
+    [Route("account-active-status/{accountId}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> AccountActiveStatus([FromRoute] int accountId)
+    {
+        var result = await _repository.ActiveStatusIdentifier(accountId);
+        return Ok(result);
+    }
+
+    [Route("device-key-identifier/{deviceKey}/{username}"), HttpPost, HttpPut]
+    public async Task<IActionResult> DeviceKeyIdentifier([FromRoute] string deviceKey, [FromRoute] string username)
+    {
+        var result = await _repository.DeviceKeyIdentifier(deviceKey, username);
+        return Ok(result);
+    }
+
+    [Route("check-signin-request/{accountId}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> CheckSignInRequest([FromRoute] int accountId)
+    {
+        var result = await _repository.CheckSignInRequest(accountId);
+        return Ok(result);
+    }
+
+    [Route("approve-signin-request"), HttpPost, HttpDelete]
+    [AllowAnonymous]
+    public async Task<IActionResult> ApproveSignInRequest([FromBody] ApproveSigninHelper approveSigninHelper)
+    {
+        var result = await _repository.ApproveSignInRequest(approveSigninHelper);
+        return Ok(result);
+    }
+
+    [Route("reject-signin-request"), HttpPut]
+    [AllowAnonymous]
+    public async Task<IActionResult> RejectSignInRequest([FromBody] ApproveSigninHelper approveSigninHelper)
+    {
+        var result = await _repository.RejectRequest(approveSigninHelper);
+        return Ok(result);
+    }
+
+    [Route("get-approved-request/{username}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetApprovedSigninRequest([FromRoute] string username)
+    {
+        var result = await _repository.GetApprovedRequest(username);
+        return Ok(result);
+    }
+
+    [Route("get-rejected-request/{username}"), HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetRejectedSigninRequest([FromRoute] string username)
+    {
+        var result = await _repository.GetRejectedRequest(username);
+        return Ok(result);
     }
 }

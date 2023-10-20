@@ -8,7 +8,7 @@
         string room_type { get; set; }
         string? room_description { get; set; }
         string? room_password { get; set; }
-        int sectionId { get; set; }
+        string sectionId { get; set; }
         Guid comlabId { get; set; }
         string room_link { get; set; }
         int room_status { get; set; }

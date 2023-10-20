@@ -5,6 +5,7 @@ using sti_sys_backend.Authentication;
 using sti_sys_backend.Core.Services;
 using sti_sys_backend.DataImplementations;
 using sti_sys_backend.Models;
+using sti_sys_backend.Utilization;
 
 namespace sti_sys_backend.Controllers.BaseControllers.TicketBase
 {
@@ -230,11 +231,11 @@ namespace sti_sys_backend.Controllers.BaseControllers.TicketBase
             return Ok(res);
         }
         /* Report Tickets */
-        [Route("total-open-tickets-report/{type}/{section}"), HttpGet]
+        [Route("total-open-tickets-report"), HttpGet, HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> TotalCounts([FromRoute] string type, [FromRoute] int? section)
+        public async Task<IActionResult> TotalCounts([FromBody] TicketReportsHelper ticketReportsHelper)
         {
-            var result = await _repository.TotalReports(type, section);
+            var result = await _repository.TotalReports(ticketReportsHelper);
             return Ok(result);
         }
 

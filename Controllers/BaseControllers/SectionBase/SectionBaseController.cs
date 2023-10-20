@@ -70,10 +70,10 @@ namespace sti_sys_backend.Controllers.BaseControllers.SectionBase
         }
 
         [Route("find-courses-by-acronyms/{acronyms}"), HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<Courses>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<CourseManagement>))]
         public async Task<IActionResult> FindCoursesByAcronyms([FromRoute] string acronyms)
         {
-            List<Courses> courses = (await _repository.findAllCoursesByAcronyms(acronyms));
+            List<CourseManagement> courses = (await _repository.findAllCoursesByAcronyms(acronyms));
             return Ok(courses);
         }
 
@@ -94,11 +94,11 @@ namespace sti_sys_backend.Controllers.BaseControllers.SectionBase
             return Ok(result);
         }
 
-        [Route("get-all-sections-non-joined"), HttpGet]
+        [Route("get-all-sections-non-joined/{course_id}"), HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllSectionsNonJoined()
+        public async Task<IActionResult> GetAllSectionsNonJoined([FromRoute] int course_id)
         {
-            var result = await _repository.getAllSectionsNonJoined();
+            var result = await _repository.getAllSectionsNonJoined(course_id);
             return Ok(result);
         }
     }

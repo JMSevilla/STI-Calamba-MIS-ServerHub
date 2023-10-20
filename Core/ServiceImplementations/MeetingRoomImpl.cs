@@ -57,11 +57,18 @@ namespace sti_sys_backend.Core.ServiceImplementations
         {
             throw new NotImplementedException();
         }
-
-        public async Task<dynamic> getAllRooms(int sectionId)
+        class MultiSections
         {
-            var roomsWithParticipants = await _context.Set<TEntity>()
-                .Where(x => x.sectionId == sectionId)
+            public string label { get; set; }
+            public int value { get; set; }
+        }
+        public async Task<dynamic> getAllRooms(SectionsHelper sectionsHelper)
+        {
+            var roomsWithParticipants = _context.Set<TEntity>()
+                .Where(x => x.sectionId != null)
+                .AsEnumerable<TEntity>() // Explicitly specify the type
+                .Where(x => JsonConvert.DeserializeObject<List<MultiSections>>(x.sectionId)
+                    .Any(sect => sectionsHelper.section.Any(id => sect.value == id)))
                 .Select(room => new
                 {
                     Room = room,
@@ -69,10 +76,12 @@ namespace sti_sys_backend.Core.ServiceImplementations
                         .Where(p => p.room_id == room.id && p._joinedStatus == JoinedStatus.JOINED)
                         .ToList(),
                     RoomAuthorization = _context.MeetingActionsLogsEnumerable
-                        .Where(x => x.room_id == room.id 
-                                    && x.logDateTime.Value.Date == DateTime.Today)
+                        .Where(x => x.room_id == room.id && x.logDateTime.Value.Date == DateTime.Today)
                         .ToList()
-                }).OrderByDescending(item => item.Room.created_at).ToListAsync();
+                })
+                .OrderByDescending(item => item.Room.created_at)
+                .ToList();
+
             return roomsWithParticipants;
         }
 

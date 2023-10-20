@@ -115,6 +115,7 @@ builder.Services.AddScoped<SectionsConstructor>();
 builder.Services.AddScoped<TicketingConstructor>();
 builder.Services.AddScoped<MeetingRoomConstructor>();
 builder.Services.AddScoped<KeyAuthFilter>();
+builder.Services.AddScoped<CourseManagementConstructor>();
 builder.Services.AddTransient<IMailImplementation, MailService>();
 
 var app = builder.Build();

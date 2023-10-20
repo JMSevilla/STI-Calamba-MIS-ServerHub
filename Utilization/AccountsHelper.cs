@@ -14,6 +14,7 @@ public class AccountsHelper
     public int verified { get; set; }
     public int access_level { get; set; }
     public int section { get; set; }
+    public string multipleSections { get; set; }
     public int course_id { get; set; }
     public int isNewAccount { get; set; }
     public int type { get; set; }
