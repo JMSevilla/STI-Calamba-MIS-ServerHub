@@ -38,6 +38,7 @@ public class WorldTimeAPI
                 if (DateTimeOffset.TryParse(worldTimeResponsev2.dateTime, out DateTimeOffset dateTimeOffset))
                 {
                     TimeSpan currentTime = dateTimeOffset.TimeOfDay;
+                    return currentTime;
                 }
             }
 

@@ -33,4 +33,12 @@ public class DatabaseQueryable : IdentityDbContext<JWTIdentity>
     public DbSet<ActionsLogger> ActionsLoggers { get; set; }
     public DbSet<MailGunSecuredApiKey> MailGunSecuredApiKeys { get; set; }
     public DbSet<JitsiPrivateKey> JitsiPrivateKeys { get; set; }
+    public DbSet<CourseManagement> CourseManagements { get; set; }
+    public DbSet<GlobalCategories> GlobalCategoriesEnumerable { get; set; }
+    public DbSet<SubjectManagement> SubjectManagements { get; set; }
+    public DbSet<CourseAssignation> CourseAssignations { get; set; }
+    public DbSet<SubjectAssignation> SubjectAssignations { get; set; }
+    public DbSet<SectionAssignation> SectionAssignations { get; set; }
+    public DbSet<SigninApproval> SigninApprovals { get; set; }
+    public DbSet<DeviceRecognition> DeviceRecognitions { get; set; }
 }

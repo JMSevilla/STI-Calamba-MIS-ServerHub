@@ -234,6 +234,9 @@ namespace sti_sys_backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
+                    b.Property<int>("_activeStatus")
+                        .HasColumnType("int");
+
                     b.Property<int>("access_level")
                         .HasColumnType("int");
 
@@ -254,6 +257,12 @@ namespace sti_sys_backend.Migrations
                     b.Property<string>("imgurl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("invalidCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("isArchived")
+                        .HasColumnType("int");
+
                     b.Property<int>("isNewAccount")
                         .HasColumnType("int");
 
@@ -266,6 +275,10 @@ namespace sti_sys_backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("mobileNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("multipleSections")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -383,6 +396,105 @@ namespace sti_sys_backend.Migrations
                     b.ToTable("conference_auth");
                 });
 
+            modelBuilder.Entity("sti_sys_backend.Models.CourseAssignation", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("categoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("courseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("subjectArea")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("subjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("subjectName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("units")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("course_assignation");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.CourseManagement", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<int>("_courseSlotStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("_courseStatus")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("categoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("courseAcronym")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("courseDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("courseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("courseName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("imgurl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("maximumStudents")
+                        .HasColumnType("int");
+
+                    b.Property<int>("numbersOfStudent")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("course_management");
+                });
+
             modelBuilder.Entity("sti_sys_backend.Models.Courses", b =>
                 {
                     b.Property<int>("id")
@@ -408,6 +520,74 @@ namespace sti_sys_backend.Migrations
                     b.HasKey("id");
 
                     b.ToTable("courses");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.DeviceRecognition", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("_appGranted")
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("approved")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deviceKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("rejects")
+                        .HasColumnType("int");
+
+                    b.Property<int>("signinRequest")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("device_recognition");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.GlobalCategories", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("_categoryStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("categoryDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("categoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("categoryPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("global_categories");
                 });
 
             modelBuilder.Entity("sti_sys_backend.Models.JitsiPrivateKey", b =>
@@ -586,8 +766,9 @@ namespace sti_sys_backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("sectionId")
-                        .HasColumnType("int");
+                    b.Property<string>("sectionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
@@ -681,6 +862,31 @@ namespace sti_sys_backend.Migrations
                     b.ToTable("record_joined_participants");
                 });
 
+            modelBuilder.Entity("sti_sys_backend.Models.SectionAssignation", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("sectionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("section_assignation");
+                });
+
             modelBuilder.Entity("sti_sys_backend.Models.Sections", b =>
                 {
                     b.Property<int>("id")
@@ -733,6 +939,97 @@ namespace sti_sys_backend.Migrations
                     b.HasKey("id");
 
                     b.ToTable("application_settings");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.SigninApproval", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("_signinStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deviceKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("signin_approvals");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.SubjectAssignation", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("accountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("courseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("subjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("subject_assignation");
+                });
+
+            modelBuilder.Entity("sti_sys_backend.Models.SubjectManagement", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("categoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("courseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("subjectArea")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("subjectName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("units")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("subject_management");
                 });
 
             modelBuilder.Entity("sti_sys_backend.Models.TicketIssues", b =>

@@ -1,5 +1,6 @@
 ﻿using sti_sys_backend.DataImplementations;
 using sti_sys_backend.Models;
+using sti_sys_backend.Utilization;
 
 namespace sti_sys_backend.Core.Services
 {
@@ -29,7 +30,7 @@ namespace sti_sys_backend.Core.Services
         public Task<dynamic> ChangeStatusFromTicketDetails(Guid ticketId, IssueStatuses status);
         public Task<dynamic> RemovePC(Guid id);
         public Task<dynamic> RemoveComLab(Guid id);
-        public Task<dynamic> TotalReports(string type, int? section);
+        public Task<dynamic> TotalReports(TicketReportsHelper ticketReportsHelper);
 
         public Task<dynamic> AdminReportChartTickets(); //test-env
         public Task<dynamic> FetchPCsUnderComlabId(Guid comlabId);

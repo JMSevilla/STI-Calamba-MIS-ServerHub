@@ -15,8 +15,18 @@ public interface Accounts
     int verified { get; set; }
     int access_level { get; set; }
     int section { get; set; }
+    string multipleSections { get; set; }
     int course_id { get; set; }
     int isNewAccount { get; set; }
+    int invalidCount { get; set; }
+    int isArchived { get; set; }
+    ActiveStatus _activeStatus { get; set; }
     DateTime created_at { get; set; }
     DateTime updated_at { get; set; }
+}
+
+public enum ActiveStatus
+{
+    OFFLINE,
+    ONLINE
 }

@@ -1,5 +1,6 @@
 ﻿using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using sti_sys_backend.Core.Services;
 using sti_sys_backend.DataImplementations;
 using sti_sys_backend.DB;
@@ -378,9 +379,14 @@ namespace sti_sys_backend.Core.ServiceImplementations
             return 400;
         }
 
-        public async Task<dynamic> TotalReports(string type, int? section)
+        class MultiSections
         {
-            switch (type)
+            public string label { get; set; }
+            public int value { get; set; }
+        }
+        public async Task<dynamic> TotalReports(TicketReportsHelper ticketReportsHelper)
+        {
+            switch (ticketReportsHelper.type)
             {
                 case "total-open-tickets":
                     var result = await _context.Set<Ticketing>()
@@ -402,9 +408,16 @@ namespace sti_sys_backend.Core.ServiceImplementations
                         .Where(x => x.status == 1 && x.verified == 1).CountAsync();
                     return totaluserscount;
                 case "total-students":
-                    var totalStudentscount = await _context.Set<Accounts>()
-                        .Where(x => x.access_level == 3 && x.section == section
-                                                        && x.status == 1 && x.verified == 1).CountAsync();
+                    var allAccounts = await _context.Set<Accounts>()
+                        .Where(x =>
+                            x.access_level == 3 &&
+                            x.status == 1 &&
+                            x.verified == 1)
+                        .ToListAsync();
+                    
+                    var totalStudentscount = allAccounts.Count(x =>
+                        ticketReportsHelper.section.All(id => JsonConvert.DeserializeObject<List<MultiSections>>(x.multipleSections)
+                            .Any(section => section.value == id)));
                     return totalStudentscount;
                 default:
                     return 400;

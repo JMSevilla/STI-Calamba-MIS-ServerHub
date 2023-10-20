@@ -39,9 +39,9 @@ public interface IAccountsService<T> where T: class, Accounts
     public Task<dynamic> SecurityChangePassword(SecurityAndPassword securityAndPassword);
     
     /* Student Attendance */
-    public Task<dynamic> StudentAttendanceReport(int section);
+    public Task<dynamic> StudentAttendanceReport(SectionsHelper sectionsHelper);
     public Task<dynamic> CurrentStudentAttendanceReport(int accountId);
-    public Task<dynamic> StudentAttendanceReportFilterFromAndTo(DateTime from, DateTime to, int section);
+    public Task<dynamic> StudentAttendanceReportFilterFromAndTo(SectionsHelper sectionsHelper);
     
     /* student mark statuses */
     public Task<dynamic> StudentMarkStudentStatuses(Guid id, ProductivityStatus productivityStatus);
@@ -61,4 +61,19 @@ public interface IAccountsService<T> where T: class, Accounts
     public Task<dynamic> GetAccountsDetails(int accountId);
     public Task<bool> IsNewAccount(int id);
     public Task<bool> IsNotVerified(int id);
+    public Task InvalidPasswordLimits(string username);
+    public Task<dynamic> AccountArchived(int id);
+    public Task<dynamic> ListOfArchives(int access_level);
+    public Task<dynamic> RecoverFromArchived(int id);
+    public Task<dynamic> DeleteAccountPermanently(int id);
+    public Task<dynamic> DeletionInProgress(int id);
+    public Task<dynamic> AccountsListByCourse(int courseId, int section_id);
+    public Task<dynamic> ActiveStatusIdentifier(int accountId);
+    public Task<dynamic> DeviceKeyIdentifier(string deviceKey, string username);
+    public Task<dynamic> CheckSignInRequest(int accountId);
+    public Task<dynamic> ApproveSignInRequest(ApproveSigninHelper approveSigninHelper);
+    public Task CreateNewDeviceKey(int accountId);
+    public Task<dynamic> GetApprovedRequest(string username);
+    public Task<dynamic> GetRejectedRequest(string username);
+    public Task<dynamic> RejectRequest(ApproveSigninHelper approveSigninHelper);
 }

@@ -66,9 +66,9 @@ namespace sti_sys_backend.Core.ServiceImplementations
             return courses;
         }
 
-        public async Task<List<Courses>> findAllCoursesByAcronyms(string acronyms)
+        public async Task<List<CourseManagement>> findAllCoursesByAcronyms(string acronyms)
         {
-            List<Courses> coursesByAcronyms = await _context.Set<Courses>()
+            List<CourseManagement> coursesByAcronyms = await _context.Set<CourseManagement>()
                 .Where(x => x.courseAcronym.Contains(acronyms))
                 .ToListAsync() .ConfigureAwait(false);
             return coursesByAcronyms;
@@ -89,18 +89,23 @@ namespace sti_sys_backend.Core.ServiceImplementations
             return 400;
         }
 
-        public async Task<List<Courses>> getAllCoursesNonJoined()
+        public async Task<List<CourseManagement>> getAllCoursesNonJoined()
         {
-            List<Courses> allCourses = await _context.Set<Courses>()
+            List<CourseManagement> allCourses = await _context.Set<CourseManagement>()
                 .ToListAsync();
             return allCourses;
         }
 
-        public async Task<List<TEntity>> getAllSectionsNonJoined()
+        public async Task<List<TEntity>> getAllSectionsNonJoined(int course_id)
         {
             List<TEntity> allSections = await _context.Set<TEntity>()
-                .ToListAsync();
+                .Where(x => x.course_id == course_id).ToListAsync();
             return allSections;
+        }
+
+        public async Task<dynamic> UpdateAccountSection(string email)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<dynamic> findAllSections()
