@@ -417,11 +417,12 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             {
                 if (BCrypt.Net.BCrypt.Verify(loginParams.password, encryptedPassword))
                 {
-                    if (foundDevice != null)
-                    {
-                        foundDevice._appGranted = AppGranted.ACTIVE;
-                        await context.SaveChangesAsync();
-                    }
+                    // this function is deprecated for some deep investigation
+                    // if (foundDevice != null)
+                    // {
+                    //     foundDevice._appGranted = AppGranted.ACTIVE;
+                    //     await context.SaveChangesAsync();
+                    // }
                     if (findAllAccountsDetails.section == findSectionIdByUsername.section)
                     {
                         if (accounts != null && await _userManager.CheckPasswordAsync(accounts, loginParams.password))
