@@ -335,11 +335,11 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         return Ok(result);
     }
 
-    [Route("list-of-archives/{access_level}"), HttpGet]
+    [Route("list-of-archives"), HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> ArchivedList([FromRoute] int access_level)
+    public async Task<IActionResult> ArchivedList([FromBody] ArchiveHelper archiveHelper)
     {
-        var result = await _repository.ListOfArchives(access_level);
+        var result = await _repository.ListOfArchives(archiveHelper);
         return Ok(result);
     }
 
