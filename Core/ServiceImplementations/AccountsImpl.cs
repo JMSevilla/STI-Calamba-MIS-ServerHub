@@ -1466,11 +1466,28 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         return 404;
     }
 
-    public async Task<dynamic> ListOfArchives(int access_level)
+    public async Task<dynamic> ListOfArchives(ArchiveHelper archiveHelper)
     {
-        var result = await context.Set<TEntity>()
-            .Where(x => x.isArchived == 1 && x.access_level == access_level).ToListAsync();
-        return result;
+        if (archiveHelper.access_level == 1)
+        {
+            int[] access = new[] { 1, 2, 3 };
+            var result = await context.Set<TEntity>()
+                .Where(x => x.isArchived == 1 && access.Contains(x.access_level)).ToListAsync();
+            return result;
+        }
+        else
+        {
+            var result = await context.Set<TEntity>()
+                .Where(x => x.isArchived == 1 && x.access_level == 3)
+                .ToListAsync();
+
+            // Filter the result based on deserialized data
+            result = result.Where(x => JsonConvert.DeserializeObject<List<MultiSections>>(x.multipleSections)
+                    .Any(sect => archiveHelper.section.Contains(sect.value)))
+                .ToList();
+
+            return result;
+        }
     }
 
     public async Task<dynamic> RecoverFromArchived(int id)

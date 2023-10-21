@@ -63,7 +63,7 @@ public interface IAccountsService<T> where T: class, Accounts
     public Task<bool> IsNotVerified(int id);
     public Task InvalidPasswordLimits(string username);
     public Task<dynamic> AccountArchived(int id);
-    public Task<dynamic> ListOfArchives(int access_level);
+    public Task<dynamic> ListOfArchives(ArchiveHelper archiveHelper);
     public Task<dynamic> RecoverFromArchived(int id);
     public Task<dynamic> DeleteAccountPermanently(int id);
     public Task<dynamic> DeletionInProgress(int id);
