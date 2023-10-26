@@ -302,7 +302,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
             else
             {
                 var joined_room = await _context.Set<TEntity>()
-                    .Where(x => x.id == room_id && x.room_status == 1)
+                    .Where(x => x.id == room_id)
                     .FirstOrDefaultAsync();
                 if (joined_room != null)
                 {
@@ -467,8 +467,8 @@ namespace sti_sys_backend.Core.ServiceImplementations
                     .FirstOrDefaultAsync();
                 if (joined_room != null)
                 {
-                    var list = await _context.RecordJoinedParticipantsEnumerable
-                        .Where(x => x.room_id == joined_room.id && x._RecordJoinedStatus == RecordJoinedStatus.LEFT)
+                    var list = await _context.JoinedParticipantsEnumerable
+                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT)
                         .OrderByDescending(x => x.date_left)
                         .Join(_context.AccountsEnumerable,
                             joined => joined.accountId,
@@ -478,7 +478,6 @@ namespace sti_sys_backend.Core.ServiceImplementations
                                 Joined = participants,
                                 Account = accounts
                             }))
-                        .Where(joinedAccount => joinedAccount.Account.access_level == 3)
                         .Join(_context.Set<TEntity>(),
                             meetings => meetings.Joined.room_id,
                             additional => additional.id,
