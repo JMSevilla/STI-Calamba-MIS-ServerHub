@@ -181,9 +181,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 UserName = accounts.username
             };
 
-            var result = await _userManager.CreateAsync(user, accounts.password);
-            if (!result.Succeeded)
-                return "password_too_weak";
+            await _userManager.CreateAsync(user, accounts.password);
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(accounts.password);
             accounts.password = hashedPassword;
             accounts.access_level = 1;
