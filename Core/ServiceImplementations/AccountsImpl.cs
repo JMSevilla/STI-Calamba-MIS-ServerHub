@@ -90,10 +90,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 
                 whenVerificationsExists.resendCount = whenVerificationsExists.resendCount + 1;
                 whenVerificationsExists.code = Convert.ToInt32(code);
-                var result = await _userManager.CreateAsync(user, account.password);
-                if (!result.Succeeded)
-                    return "password_too_weak";
-                
+                await _userManager.CreateAsync(user, account.password);
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(account.password);
                 accounts.password = hashedPassword;
                 accounts.access_level = account.type;
@@ -123,9 +120,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             else
             {
                 string code = GenerateVerificationCode.GenerateCode();
-                var result = await _userManager.CreateAsync(user, account.password);
-                if (!result.Succeeded)
-                    return "password_too_weak";
+                await _userManager.CreateAsync(user, account.password);
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(account.password);
                 accounts.password = hashedPassword;
                 accounts.access_level = account.type;
