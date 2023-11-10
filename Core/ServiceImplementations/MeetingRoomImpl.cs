@@ -248,39 +248,46 @@ namespace sti_sys_backend.Core.ServiceImplementations
             else
             {
                 var joined_room = await _context.Set<TEntity>()
-                    .Where(x => x.id == room_id)
+                    .Where(x => x.id == room_id && x.room_status == 1)
                     .FirstOrDefaultAsync();
-                var list = await _context.JoinedParticipantsEnumerable
-                    .Where(x => x.room_id == joined_room.id && x._joinedStatus == 0)
-                    .OrderByDescending(x => x.date_joined)
-                    .Join(_context.AccountsEnumerable,
-                        joined => joined.accountId,
-                        account => account.id,
-                        ((participants, accounts) => new
-                        {
-                            Joined = participants,
-                            Account = accounts
-                        }))
-                    .Join(_context.Set<TEntity>(),
-                        meetings => meetings.Joined.room_id,
-                        additional => additional.id,
-                        (joined, additional) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = additional
-                        })
-                    .Join(_context.CoursesEnumerable,
-                        courses => courses.Account.course_id,
-                        account => account.id,
-                        (joined, course) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = joined.Additional,
-                            Course = course
-                        }).ToListAsync();
-                return list;
+                if (joined_room != null)
+                {
+                    var list = await _context.JoinedParticipantsEnumerable
+                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.JOINED && x.date_joined.Date == DateTime.Today)
+                        .OrderByDescending(x => x.date_joined)
+                        .Join(_context.AccountsEnumerable,
+                            joined => joined.accountId,
+                            account => account.id,
+                            ((participants, accounts) => new
+                            {
+                                Joined = participants,
+                                Account = accounts
+                            }))
+                        .Join(_context.Set<TEntity>(),
+                            meetings => meetings.Joined.room_id,
+                            additional => additional.id,
+                            (joined, additional) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = additional
+                            })
+                        .Join(_context.CoursesEnumerable,
+                            courses => courses.Account.course_id,
+                            account => account.id,
+                            (joined, course) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = joined.Additional,
+                                Course = course
+                            }).ToListAsync();
+                    return list;
+                }
+                else
+                {
+                    return 400;
+                }
             }
         }
 
@@ -297,37 +304,44 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 var joined_room = await _context.Set<TEntity>()
                     .Where(x => x.id == room_id)
                     .FirstOrDefaultAsync();
-                var list = await _context.RecordJoinedParticipantsEnumerable
-                    .Where(x => x.room_id == joined_room.id && x._RecordJoinedStatus == 0)
-                    .OrderByDescending(x => x.date_joined)
-                    .Join(_context.AccountsEnumerable,
-                        joined => joined.accountId,
-                        account => account.id,
-                        ((participants, accounts) => new
-                        {
-                            Joined = participants,
-                            Account = accounts
-                        }))
-                    .Join(_context.Set<TEntity>(),
-                        meetings => meetings.Joined.room_id,
-                        additional => additional.id,
-                        (joined, additional) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = additional
-                        })
-                    .Join(_context.CoursesEnumerable,
-                        courses => courses.Account.course_id,
-                        account => account.id,
-                        (joined, course) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = joined.Additional,
-                            Course = course
-                        }).ToListAsync();
-                return list;
+                if (joined_room != null)
+                {
+                    var list = await _context.RecordJoinedParticipantsEnumerable
+                        .Where(x => x.room_id == joined_room.id && x._RecordJoinedStatus == RecordJoinedStatus.JOINED && x.date_joined.Date == DateTime.Today)
+                        .OrderByDescending(x => x.date_joined)
+                        .Join(_context.AccountsEnumerable,
+                            joined => joined.accountId,
+                            account => account.id,
+                            ((participants, accounts) => new
+                            {
+                                Joined = participants,
+                                Account = accounts
+                            }))
+                        .Join(_context.Set<TEntity>(),
+                            meetings => meetings.Joined.room_id,
+                            additional => additional.id,
+                            (joined, additional) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = additional
+                            })
+                        .Join(_context.CoursesEnumerable,
+                            courses => courses.Account.course_id,
+                            account => account.id,
+                            (joined, course) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = joined.Additional,
+                                Course = course
+                            }).ToListAsync();
+                    return list;
+                }
+                else
+                {
+                    return 400;
+                }
             }
         }
 
@@ -394,40 +408,47 @@ namespace sti_sys_backend.Core.ServiceImplementations
             else
             {
                 var joined_room = await _context.Set<TEntity>()
-                    .Where(x => x.id == room_id)
+                    .Where(x => x.id == room_id && x.room_status == 1)
                     .FirstOrDefaultAsync();
-                var list = await _context.JoinedParticipantsEnumerable
-                    .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT)
-                    .OrderByDescending(x => x.date_left)
-                    .Join(_context.AccountsEnumerable,
-                        joined => joined.accountId,
-                        account => account.id,
-                        ((participants, accounts) => new
-                        {
-                            Joined = participants,
-                            Account = accounts
-                        }))
-                    .Where(joinedAccount => joinedAccount.Account.access_level == 3)
-                    .Join(_context.Set<TEntity>(),
-                        meetings => meetings.Joined.room_id,
-                        additional => additional.id,
-                        (joined, additional) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = additional
-                        })
-                    .Join(_context.CoursesEnumerable,
-                        courses => courses.Account.course_id,
-                        account => account.id,
-                        (joined, course) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = joined.Additional,
-                            Course = course
-                        }).ToListAsync();
-                return list;
+                if (joined_room != null)
+                {
+                    var list = await _context.JoinedParticipantsEnumerable
+                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT && x.date_left.Date == DateTime.Today)
+                        .OrderByDescending(x => x.date_left)
+                        .Join(_context.AccountsEnumerable,
+                            joined => joined.accountId,
+                            account => account.id,
+                            ((participants, accounts) => new
+                            {
+                                Joined = participants,
+                                Account = accounts
+                            }))
+                        .Where(joinedAccount => joinedAccount.Account.access_level == 3)
+                        .Join(_context.Set<TEntity>(),
+                            meetings => meetings.Joined.room_id,
+                            additional => additional.id,
+                            (joined, additional) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = additional
+                            })
+                        .Join(_context.CoursesEnumerable,
+                            courses => courses.Account.course_id,
+                            account => account.id,
+                            (joined, course) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = joined.Additional,
+                                Course = course
+                            }).ToListAsync();
+                    return list;
+                }
+                else
+                {
+                    return 400;
+                }
             }
         }
 
@@ -444,37 +465,44 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 var joined_room = await _context.Set<TEntity>()
                     .Where(x => x.id == room_id)
                     .FirstOrDefaultAsync();
-                var list = await _context.JoinedParticipantsEnumerable
-                    .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT)
-                    .OrderByDescending(x => x.date_left)
-                    .Join(_context.AccountsEnumerable,
-                        joined => joined.accountId,
-                        account => account.id,
-                        ((participants, accounts) => new
-                        {
-                            Joined = participants,
-                            Account = accounts
-                        }))
-                    .Join(_context.Set<TEntity>(),
-                        meetings => meetings.Joined.room_id,
-                        additional => additional.id,
-                        (joined, additional) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = additional
-                        })
-                    .Join(_context.CoursesEnumerable,
-                        courses => courses.Account.course_id,
-                        account => account.id,
-                        (joined, course) => new
-                        {
-                            Joined = joined.Joined,
-                            Account = joined.Account,
-                            Additional = joined.Additional,
-                            Course = course
-                        }).ToListAsync();
-                return list;
+                if (joined_room != null)
+                {
+                    var list = await _context.JoinedParticipantsEnumerable
+                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT)
+                        .OrderByDescending(x => x.date_left)
+                        .Join(_context.AccountsEnumerable,
+                            joined => joined.accountId,
+                            account => account.id,
+                            ((participants, accounts) => new
+                            {
+                                Joined = participants,
+                                Account = accounts
+                            }))
+                        .Join(_context.Set<TEntity>(),
+                            meetings => meetings.Joined.room_id,
+                            additional => additional.id,
+                            (joined, additional) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = additional
+                            })
+                        .Join(_context.CoursesEnumerable,
+                            courses => courses.Account.course_id,
+                            account => account.id,
+                            (joined, course) => new
+                            {
+                                Joined = joined.Joined,
+                                Account = joined.Account,
+                                Additional = joined.Additional,
+                                Course = course
+                            }).ToListAsync();
+                    return list;
+                }
+                else
+                {
+                    return 400;
+                }
             }
         }
 
