@@ -253,49 +253,32 @@ namespace sti_sys_backend.Core.ServiceImplementations
                     {
                         Ticketing = ticketing,
                         Account = account
-                    })
-                .Join(_context.AccountsEnumerable,
-                    ticketingAccount => ticketingAccount.Ticketing.specificAssignee,
-                    specificAssigneeAccount => specificAssigneeAccount.id,
-                    (ticketingAccount, specificAssigneeAccount) => new
-                    {
-                        TicketingAccount = ticketingAccount,
-                        SpecificAssigneeAccount = specificAssigneeAccount
                     }).Select(result => new
                     {
-                        result.TicketingAccount.Ticketing.Id,
-                        result.TicketingAccount.Ticketing.ticketId,
-                        result.TicketingAccount.Ticketing.ticketSubject,
-                        result.TicketingAccount.Ticketing.priority,
-                        result.TicketingAccount.Ticketing.description,
-                        result.TicketingAccount.Ticketing.Assignee,
-                        result.TicketingAccount.Ticketing.specificAssignee,
-                        result.TicketingAccount.Ticketing.issue,
-                        result.TicketingAccount.Ticketing.IssueStatuses,
-                        result.TicketingAccount.Ticketing.requester,
-                        result.TicketingAccount.Ticketing.requesterId,
-                        result.TicketingAccount.Ticketing.pc_number,
-                        result.TicketingAccount.Ticketing.comLab,
-                        result.TicketingAccount.Ticketing.pushNotif,
-                        result.TicketingAccount.Ticketing.created_at,
-                        result.TicketingAccount.Ticketing.updated_at,
+                        result.Ticketing.Id,
+                        result.Ticketing.ticketId,
+                        result.Ticketing.ticketSubject,
+                        result.Ticketing.priority,
+                        result.Ticketing.description,
+                        result.Ticketing.Assignee,
+                        result.Ticketing.specificAssignee,
+                        result.Ticketing.issue,
+                        result.Ticketing.IssueStatuses,
+                        result.Ticketing.requester,
+                        result.Ticketing.requesterId,
+                        result.Ticketing.pc_number,
+                        result.Ticketing.comLab,
+                        result.Ticketing.pushNotif,
+                        result.Ticketing.created_at,
+                        result.Ticketing.updated_at,
                         Accounts = new
                         {
-                            result.TicketingAccount.Account.id,
-                            result.TicketingAccount.Account.email,
-                            result.TicketingAccount.Account.username,
-                            result.TicketingAccount.Account.firstname,
-                            result.TicketingAccount.Account.lastname,
-                            result.TicketingAccount.Account.imgurl
-                        },
-                        SpecificAssigneeAccount = new
-                        {
-                            result.SpecificAssigneeAccount.id,
-                            result.SpecificAssigneeAccount.email,
-                            result.SpecificAssigneeAccount.username,
-                            result.SpecificAssigneeAccount.firstname,
-                            result.SpecificAssigneeAccount.lastname,
-                            result.SpecificAssigneeAccount.imgurl
+                            result.Account.id,
+                            result.Account.email,
+                            result.Account.username,
+                            result.Account.firstname,
+                            result.Account.lastname,
+                            result.Account.imgurl
                         }
                     })
                         .ToListAsync();
