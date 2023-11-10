@@ -253,7 +253,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 if (joined_room != null)
                 {
                     var list = await _context.JoinedParticipantsEnumerable
-                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.JOINED && x.date_joined.Date == DateTime.Today)
+                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.JOINED)
                         .OrderByDescending(x => x.date_joined)
                         .Join(_context.AccountsEnumerable,
                             joined => joined.accountId,
@@ -307,7 +307,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 if (joined_room != null)
                 {
                     var list = await _context.RecordJoinedParticipantsEnumerable
-                        .Where(x => x.room_id == joined_room.id && x._RecordJoinedStatus == RecordJoinedStatus.JOINED && x.date_joined.Date == DateTime.Today)
+                        .Where(x => x.room_id == joined_room.id && x._RecordJoinedStatus == RecordJoinedStatus.JOINED)
                         .OrderByDescending(x => x.date_joined)
                         .Join(_context.AccountsEnumerable,
                             joined => joined.accountId,
@@ -413,7 +413,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 if (joined_room != null)
                 {
                     var list = await _context.JoinedParticipantsEnumerable
-                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT && x.date_left.Date == DateTime.Today)
+                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT)
                         .OrderByDescending(x => x.date_left)
                         .Join(_context.AccountsEnumerable,
                             joined => joined.accountId,
