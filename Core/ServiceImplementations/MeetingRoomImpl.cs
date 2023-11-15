@@ -87,7 +87,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> ModeratorReceiver(JwtJitsiServe jwtJitsiServe)
         {
-            
+
             var jwtgen = await ModeratorMechanism(
                 jwtJitsiServe.userId,
                 jwtJitsiServe.userName,
@@ -157,11 +157,11 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 .WithModerator(true)
                 .WithRoomName("*")
                 .WithUserId(Convert.ToString(userId));
-            
+
             // Sign the JWT token
             var jwtToken = jwtBuilder.SignWith(privateKey);
             return jwtToken;
-            
+
         }
 
         public async Task<string> ParticipantsMechanism(int userId, string userName, string userEmail, string roomName)
@@ -201,7 +201,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
             {
                 // change logic to JoinedParticipants Model
                 Models.LeaveMeeting leaveMeeting = new LeaveMeeting();
-                
+
                 leaveMeeting.firstname = leaveMeetingParams.firstname;
                 leaveMeeting.lastname = leaveMeetingParams.lastname;
                 leaveMeeting.accountId = leaveMeetingParams.accountId;
@@ -239,44 +239,29 @@ namespace sti_sys_backend.Core.ServiceImplementations
         }
         public async Task<dynamic> ListParticipants(Guid room_id)
         {
-            bool participantsExist = await _context.Set<JoinedParticipants>()
-                .AnyAsync(x => x.room_id == room_id);
-
-            if (!participantsExist)
-            {
-                return 400; // Consider using an appropriate HTTP status code, e.g., BadRequest
-            }
-
-            var joinedRoom = await _context.Set<MeetingRoom>()
-                .Where(x => x.id == room_id && x.room_status == 1)
-                .FirstOrDefaultAsync();
-
-            if (joinedRoom == null)
-            {
-                return 400; // Consider using an appropriate HTTP status code, e.g., BadRequest
-            }
 
             var participantsList = await _context.JoinedParticipantsEnumerable
-                .Where(x => x.room_id == joinedRoom.id && x._joinedStatus == JoinedStatus.JOINED)
-                .OrderByDescending(x => x.date_joined)
                 .Join(
                     _context.AccountsEnumerable,
-                    joined => joined.accountId,
+                    joinedParticipants => joinedParticipants.accountId,
                     account => account.id,
-                    (joined, account) => new { Joined = joined, Account = account }
-                )
-                .Join(
-                    _context.Set<TEntity>(),
-                    joined => joined.Joined.room_id,
-                    additional => additional.id,
-                    (joined, additional) => new { Joined = joined.Joined, Account = joined.Account, Additional = additional }
-                )
-                .Join(
-                    _context.CoursesEnumerable,
-                    joined => joined.Account.course_id,
-                    course => course.id,
-                    (joined, course) => new { Joined = joined.Joined, Account = joined.Account, Additional = joined.Additional, Course = course }
-                )
+                    (joinedParticipant, account) => new
+                    {
+                        JoinedParticipant = joinedParticipant,
+                        Account = account
+                    }
+                ).Where(x => x.JoinedParticipant.room_id == room_id
+                && x.JoinedParticipant._joinedStatus == JoinedStatus.JOINED)
+                .Select(y => new
+                {
+                    imgurl = y.Account.imgurl,
+                    id = y.Account.id,
+                    firstname = y.Account.firstname,
+                    lastname = y.Account.lastname,
+                    username = y.Account.username,
+                    access_level = y.Account.access_level,
+                    date_joined = y.JoinedParticipant.date_joined
+                }).Distinct()
                 .ToListAsync();
 
             return participantsList;
@@ -284,8 +269,8 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> RecordListParticipants(Guid room_id)
         {
-              bool participantsHasAny = await _context.Set<RecordJoinedParticipants>()
-                .AnyAsync(x => x.room_id == room_id);
+            bool participantsHasAny = await _context.Set<RecordJoinedParticipants>()
+              .AnyAsync(x => x.room_id == room_id);
             if (!participantsHasAny)
             {
                 return 400;
@@ -345,7 +330,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
                 var joinedParticipantToBeDeleted = await _context.Set<JoinedParticipants>()
                     .Where(x => x.accountId == uuid && x._joinedStatus == JoinedStatus.JOINED)
                     .FirstOrDefaultAsync();
-               
+
                 joinedParticipantToBeDeleted._joinedStatus = JoinedStatus.LEFT;
                 joinedParticipantToBeDeleted.date_left = DateTime.Now;
                 await _context.SaveChangesAsync();
@@ -390,63 +375,38 @@ namespace sti_sys_backend.Core.ServiceImplementations
 
         public async Task<dynamic> ListParticipantsLeft(Guid room_id)
         {
-            bool participantsHasAny = await _context.Set<JoinedParticipants>()
-                .AnyAsync(x => x.room_id == room_id);
-            if (!participantsHasAny)
-            {
-                return 400;
-            }
-            else
-            {
-                var joined_room = await _context.Set<TEntity>()
-                    .Where(x => x.id == room_id && x.room_status == 1)
-                    .FirstOrDefaultAsync();
-                if (joined_room != null)
+            var participantsList = await _context.JoinedParticipantsEnumerable
+                .Join(
+                    _context.AccountsEnumerable,
+                    joinedParticipants => joinedParticipants.accountId,
+                    account => account.id,
+                    (joinedParticipant, account) => new
+                    {
+                        JoinedParticipant = joinedParticipant,
+                        Account = account
+                    }
+                ).Where(x => x.JoinedParticipant.room_id == room_id
+                && x.JoinedParticipant._joinedStatus == JoinedStatus.LEFT
+                && x.Account.access_level == 3)
+                .Select(y => new
                 {
-                    var list = await _context.JoinedParticipantsEnumerable
-                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.LEFT && x.date_left.Date == DateTime.Today)
-                        .OrderByDescending(x => x.date_left)
-                        .Join(_context.AccountsEnumerable,
-                            joined => joined.accountId,
-                            account => account.id,
-                            ((participants, accounts) => new
-                            {
-                                Joined = participants,
-                                Account = accounts
-                            }))
-                        .Where(joinedAccount => joinedAccount.Account.access_level == 3)
-                        .Join(_context.Set<TEntity>(),
-                            meetings => meetings.Joined.room_id,
-                            additional => additional.id,
-                            (joined, additional) => new
-                            {
-                                Joined = joined.Joined,
-                                Account = joined.Account,
-                                Additional = additional
-                            })
-                        .Join(_context.CoursesEnumerable,
-                            courses => courses.Account.course_id,
-                            account => account.id,
-                            (joined, course) => new
-                            {
-                                Joined = joined.Joined,
-                                Account = joined.Account,
-                                Additional = joined.Additional,
-                                Course = course
-                            }).ToListAsync();
-                    return list;
-                }
-                else
-                {
-                    return 400;
-                }
-            }
+                    imgurl = y.Account.imgurl,
+                    id = y.Account.id,
+                    firstname = y.Account.firstname,
+                    lastname = y.Account.lastname,
+                    username = y.Account.username,
+                    access_level = y.Account.access_level,
+                    date_left = y.JoinedParticipant.date_left
+                }).Distinct()
+                .ToListAsync();
+
+            return participantsList;
         }
 
         public async Task<dynamic> RecordListParticipantsLeft(Guid room_id)
         {
-             bool participantsHasAny = await _context.Set<RecordJoinedParticipants>()
-                .AnyAsync(x => x.room_id == room_id);
+            bool participantsHasAny = await _context.Set<RecordJoinedParticipants>()
+               .AnyAsync(x => x.room_id == room_id);
             if (!participantsHasAny)
             {
                 return 400;
@@ -524,7 +484,7 @@ namespace sti_sys_backend.Core.ServiceImplementations
         public async Task<dynamic> MeetingActionsLogger(MeetingActionsLogs meetingActionsLogs)
         {
             bool existingMeeetingActionsLogger = await _context.Set<MeetingActionsLogs>()
-                .AnyAsync(x => x.accountId == meetingActionsLogs.accountId 
+                .AnyAsync(x => x.accountId == meetingActionsLogs.accountId
                                && x.room_id == meetingActionsLogs.room_id
                                && x.logDateTime.Value.Date == DateTime.Today);
             if (existingMeeetingActionsLogger)
@@ -659,6 +619,36 @@ namespace sti_sys_backend.Core.ServiceImplementations
             }
 
             return 404;
+        }
+
+        public async Task<dynamic> ListUnauthorizedParticipants(Guid room_id)
+        {
+            var participantsList = await _context.MeetingActionsLogsEnumerable
+               .Join(
+                   _context.AccountsEnumerable,
+                   unauthorizedParticipants => unauthorizedParticipants.accountId,
+                   account => account.id,
+                   (unauth, account) => new
+                   {
+                       UnauthorizedParticipants = unauth,
+                       Account = account
+                   }
+               ).Where(x => x.UnauthorizedParticipants.room_id == room_id
+               && x.UnauthorizedParticipants._meetingAuthorization == MeetingAuthorization.UNAUTHORIZED)
+               .Select(y => new
+               {
+                   imgurl = y.Account.imgurl,
+                   id = y.Account.id,
+                   firstname = y.Account.firstname,
+                   lastname = y.Account.lastname,
+                   username = y.Account.username,
+                   access_level = y.Account.access_level,
+                   authorized = y.UnauthorizedParticipants._meetingAuthorization,
+                   date_unauthorized = y.UnauthorizedParticipants.logDateTime
+               }).Distinct()
+               .ToListAsync();
+
+            return participantsList;
         }
     }
 }

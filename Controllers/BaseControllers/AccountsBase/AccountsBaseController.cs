@@ -111,7 +111,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         var result = (await _repository.AccountRecoverFromArchive(id));
         return Ok(result);
     }
-    
+
     [Route("account-resend-otp"), HttpPost, HttpPut]
     [AllowAnonymous]
     [ProducesResponseType(200)]
@@ -196,7 +196,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         var result = await _repository.StudentAttendanceReport(section);
         return Ok(result);
     }
-    
+
     [Route("current-student-attendance-initialized/{accountId}"), HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> CurrentStudentAttendanceInitialized([FromRoute] int accountId)
@@ -221,7 +221,7 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
         var result = await _repository.StudentMarkStudentStatuses(id, productivityStatus);
         return Ok(result);
     }
-    
+
     [Route("current-student-attendance-filtering/from/{from}/to/{to}/{accountId}"), HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> CurrentStudentReportFiltering([FromRoute] DateTime from, [FromRoute] DateTime to,
@@ -428,6 +428,14 @@ public abstract class AccountsBaseController<TEntity, TRepository> : ControllerB
     public async Task<IActionResult> GetRejectedSigninRequest([FromRoute] string username)
     {
         var result = await _repository.GetRejectedRequest(username);
+        return Ok(result);
+    }
+
+    [Route("marked-as-delete/{id}"), HttpDelete]
+    [AllowAnonymous]
+    public async Task<IActionResult> MarkAsRemove([FromRoute] Guid id)
+    {
+        var result = await _repository.StudentMarkAsDelete(id);
         return Ok(result);
     }
 }

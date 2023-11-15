@@ -27,6 +27,7 @@ namespace sti_sys_backend.Core.Services
         public Task<dynamic> RevokeMeetingRoom(Guid room_id);
         public Task<dynamic> CurrentAccountLeftMeeting(int uuid);
         public Task<dynamic> ListParticipantsLeft(Guid room_id);
+        public Task<dynamic> ListUnauthorizedParticipants(Guid room_id);
         public Task<dynamic> RecordListParticipantsLeft(Guid room_id);
         public Task<dynamic> AttemptingToEnterPrivateRoom(Guid room_id, string room_password);
         public Task<dynamic> MeetingActionsLogger(MeetingActionsLogs meetingActionsLogs);

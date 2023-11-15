@@ -64,10 +64,10 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         bool foundAccountModerator = await context.Set<TEntity>()
             .AnyAsync(x => x.username == account.username || x.email == account.email && x.access_level == account.type);
         var accountExists = await _userManager.FindByEmailAsync(account.email);
-        if(foundAccountModerator)
+        if (foundAccountModerator)
         {
             return 403;
-        } 
+        }
         else
         {
             if (accountExists != null)
@@ -81,13 +81,13 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             Verification verification = new Verification();
             var isThereAnyVerificationsFromDB = await context.Set<Verification>()
                 .AnyAsync(x => x.email == account.email && x.isValid == 1);
-            
+
             if (isThereAnyVerificationsFromDB)
             {
                 string code = GenerateVerificationCode.GenerateCode();
                 var whenVerificationsExists = await context.Set<Verification>()
                 .Where(x => x.email == account.email && x.isValid == 1).FirstOrDefaultAsync();
-                
+
                 whenVerificationsExists.resendCount = whenVerificationsExists.resendCount + 1;
                 whenVerificationsExists.code = Convert.ToInt32(code);
                 await _userManager.CreateAsync(user, account.password);
@@ -165,7 +165,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                                                                || x.email == accounts.email &&
                                                                                x.status == 1);
         var accountExists = await _userManager.FindByEmailAsync(accounts.email);
-        
+
         if (foundExistingAccount)
         {
             return 403;
@@ -337,7 +337,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         string code = GenerateVerificationCode.GenerateCode();
         bool existingVrf = await context.Set<Verification>().AnyAsync(x => x.email == accountSetupHelper.email && x.isValid == 1);
         bool findEmailOrUsernameExists = await context.Set<TEntity>().AnyAsync(x => x.username == accountSetupHelper.username || x.email == accountSetupHelper.email);
-        if(findEmailOrUsernameExists)
+        if (findEmailOrUsernameExists)
         {
             return findEmailOrUsernameExists;
         }
@@ -387,7 +387,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         WorldTimeAPI worldTimeApi = new WorldTimeAPI();
         int count = 0;
         var accounts = await _userManager.FindByNameAsync(loginParams.username);
-        if(accounts == null)
+        if (accounts == null)
         {
             return "ACCOUNT_NOT_FOUND_ON_THIS_SECTION";
         }
@@ -401,12 +401,13 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                         && x.rejects == 0
                         && x._appGranted == AppGranted.INACTIVE).FirstOrDefaultAsync();
         dynamic expandedObj = new ExpandoObject();
-        if(string.IsNullOrWhiteSpace(loginParams.username) || string.IsNullOrWhiteSpace(loginParams.password)) {
+        if (string.IsNullOrWhiteSpace(loginParams.username) || string.IsNullOrWhiteSpace(loginParams.password))
+        {
             return "required_fields_empty";
         }
-       
+
         string encryptedPassword = findAllAccountsDetails == null ? "" : findAllAccountsDetails.password;
-        if(isAnyAccountFromSource)
+        if (isAnyAccountFromSource)
         {
             if (findAllAccountsDetails.isArchived != 1)
             {
@@ -456,13 +457,13 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                         await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
                                         await context.SaveChangesAsync();
                                     }
-                                    
+
                                 }
                                 else
                                 {
                                     DateTime currentDatev1 = await worldTimeApi.ConfigureDateTime();
                                     TimeSpan currentTime = await worldTimeApi.ConfigureTimeSpan();
-                                                        
+
                                     ProductivityManagement productivityManagement = new ProductivityManagement();
                                     productivityManagement.accountId = getAccountId.id;
                                     productivityManagement._productivityStatus = ProductivityStatus.PENDING;
@@ -473,11 +474,11 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                     await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
                                     await context.SaveChangesAsync();
                                 }
-                                
+
                             }
 
                             findAllAccountsDetails._activeStatus = ActiveStatus.ONLINE;
-                                
+
                             DateTime currentDate = await worldTimeApi.ConfigureDateTime();
                             await PostActionsLogger(new ActionsLogger()
                             {
@@ -532,7 +533,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             {
                 return "ACCOUNT_ARCHIVED";
             }
-        } 
+        }
         else
         {
             return "ACCOUNT_DISABLED";
@@ -542,7 +543,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
 
     public async Task<dynamic> Revoke(string username)
     {
-       var user = await _userManager.FindByNameAsync(username);
+        var user = await _userManager.FindByNameAsync(username);
         if (user == null) return "must_bad_req";
         var foundAccountFromDB = await context.Set<TEntity>()
             .Where(x => x.username == username).FirstOrDefaultAsync();
@@ -565,7 +566,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 updated_at = currentDate
             });
             foundAccountFromDB._activeStatus = ActiveStatus.OFFLINE;
-            
+
             user.RefreshToken = null;
             await context.SaveChangesAsync();
             await _userManager.UpdateAsync(user);
@@ -586,7 +587,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
     {
         bool AccountExists = await context.Set<TEntity>()
             .AnyAsync(x => x.id == id);
-        if(AccountExists)
+        if (AccountExists)
         {
             var AccountToArchive = await context.Set<TEntity>()
                 .Where(x => x.id == id).FirstOrDefaultAsync();
@@ -615,7 +616,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
     public async Task<dynamic> AccountResendOTPRequest(AccountResendOtpParams accountResendOtpParams)
     {
         bool findAnyExistingVerifications = await context.Set<Verification>()
-            .AnyAsync (x => x.email == accountResendOtpParams.email && x.isValid == 1);
+            .AnyAsync(x => x.email == accountResendOtpParams.email && x.isValid == 1);
         if (findAnyExistingVerifications)
         {
             string code = GenerateVerificationCode.GenerateCode();
@@ -632,7 +633,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 body = "This is your activation code"
             });
             return 200;
-        } 
+        }
         else
         {
             string code = GenerateVerificationCode.GenerateCode();
@@ -776,7 +777,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         {
             using (HttpClient httpClient = new HttpClient())
             {
-                
+
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
                 if (response.IsSuccessStatusCode)
                 {
@@ -787,7 +788,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                             out DateTimeOffset dateTimeOffset))
                     {
                         TimeSpan currentTime = dateTimeOffset.TimeOfDay;
-                        
+
                         var needToTimeOut = await context.Set<ProductivityManagement>()
                             .Where(x => x.accountId == accountId && x._status == Status.TIME_IN)
                             .FirstOrDefaultAsync();
@@ -846,131 +847,131 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 .AnyAsync(x => x.id == profileBasicDetails.id);
             if (checkExistsAccount)
             {
-                
+
                 var foundExistingAccount = await context.Set<TEntity>()
                     .Where(x => x.id == profileBasicDetails.id
                                 && x.status == 1 && x.verified == 1)
                     .FirstOrDefaultAsync();
-                 foundExistingAccount.firstname = string.IsNullOrEmpty(profileBasicDetails.firstname)
-                        ? foundExistingAccount.firstname
-                        : profileBasicDetails.firstname;
-                    foundExistingAccount.lastname = string.IsNullOrEmpty(profileBasicDetails.lastname)
-                        ? foundExistingAccount.lastname
-                        : profileBasicDetails.lastname;
-                    foundExistingAccount.imgurl = profileBasicDetails.imgurl;
-                    if (foundExistingAccount.username != profileBasicDetails.username)
+                foundExistingAccount.firstname = string.IsNullOrEmpty(profileBasicDetails.firstname)
+                       ? foundExistingAccount.firstname
+                       : profileBasicDetails.firstname;
+                foundExistingAccount.lastname = string.IsNullOrEmpty(profileBasicDetails.lastname)
+                    ? foundExistingAccount.lastname
+                    : profileBasicDetails.lastname;
+                foundExistingAccount.imgurl = profileBasicDetails.imgurl;
+                if (foundExistingAccount.username != profileBasicDetails.username)
+                {
+                    var updaterUsernameJwt = await _userManager.FindByNameAsync(foundExistingAccount.username);
+                    bool checkIfUsernameExist = await context.Set<TEntity>()
+                        .AnyAsync(x => x.username == profileBasicDetails.username);
+                    if (checkIfUsernameExist)
                     {
-                        var updaterUsernameJwt = await _userManager.FindByNameAsync(foundExistingAccount.username);
-                        bool checkIfUsernameExist = await context.Set<TEntity>()
-                            .AnyAsync(x => x.username == profileBasicDetails.username);
-                        if (checkIfUsernameExist)
-                        {
-                            return 403;
-                        }
-
-                        if (updaterUsernameJwt != null)
-                        {
-                            updaterUsernameJwt.UserName = profileBasicDetails.username;
-                            updaterUsernameJwt.NormalizedUserName = profileBasicDetails.username;
-                            await _userManager.UpdateAsync(updaterUsernameJwt);
-                        }
+                        return 403;
                     }
-                    foundExistingAccount.username = string.IsNullOrEmpty(profileBasicDetails.username)
-                        ? foundExistingAccount.username
-                        : profileBasicDetails.username;
-                    if (foundExistingAccount.email != profileBasicDetails.email)
-                    {
-                        var updaterJwt = await _userManager.FindByEmailAsync(foundExistingAccount.email);
-                       
-                        bool checkIfEmailIsExist = await context.Set<TEntity>()
-                            .AnyAsync(x => x.email == profileBasicDetails.email);
-                        
-                        if (checkIfEmailIsExist)
-                        {
-                            return 403;
-                        }
 
-                        if (updaterJwt != null)
+                    if (updaterUsernameJwt != null)
+                    {
+                        updaterUsernameJwt.UserName = profileBasicDetails.username;
+                        updaterUsernameJwt.NormalizedUserName = profileBasicDetails.username;
+                        await _userManager.UpdateAsync(updaterUsernameJwt);
+                    }
+                }
+                foundExistingAccount.username = string.IsNullOrEmpty(profileBasicDetails.username)
+                    ? foundExistingAccount.username
+                    : profileBasicDetails.username;
+                if (foundExistingAccount.email != profileBasicDetails.email)
+                {
+                    var updaterJwt = await _userManager.FindByEmailAsync(foundExistingAccount.email);
+
+                    bool checkIfEmailIsExist = await context.Set<TEntity>()
+                        .AnyAsync(x => x.email == profileBasicDetails.email);
+
+                    if (checkIfEmailIsExist)
+                    {
+                        return 403;
+                    }
+
+                    if (updaterJwt != null)
+                    {
+                        updaterJwt.Email = profileBasicDetails.email;
+                        updaterJwt.NormalizedEmail = profileBasicDetails.email;
+                        var updateResult = await _userManager.UpdateAsync(updaterJwt);
+                        if (updateResult.Succeeded)
                         {
-                            updaterJwt.Email = profileBasicDetails.email;
-                            updaterJwt.NormalizedEmail = profileBasicDetails.email;
-                            var updateResult = await _userManager.UpdateAsync(updaterJwt);
-                            if (updateResult.Succeeded)
+                            string code = GenerateVerificationCode.GenerateCode();
+                            Verification verification = new Verification();
+                            var checkVerification = await context.Set<Verification>()
+                                .Where(x => x.email == profileBasicDetails.email
+                                               && x.isValid == 1).FirstOrDefaultAsync();
+                            if (checkVerification != null)
                             {
-                                string code = GenerateVerificationCode.GenerateCode();
-                                Verification verification = new Verification();
-                                var checkVerification = await context.Set<Verification>()
-                                    .Where(x => x.email == profileBasicDetails.email
-                                                   && x.isValid == 1).FirstOrDefaultAsync();
-                                if (checkVerification != null)
+                                checkVerification.code = Convert.ToInt32(code);
+                                checkVerification.resendCount = checkVerification.resendCount + 1;
+                                foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
+                                    ? foundExistingAccount.email
+                                    : profileBasicDetails.email;
+                                foundExistingAccount.verified = 0;
+                                await SendEmailSMTPWithCode(new SendEmailHelper()
                                 {
-                                    checkVerification.code = Convert.ToInt32(code);
-                                    checkVerification.resendCount = checkVerification.resendCount + 1;
-                                    foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
-                                        ? foundExistingAccount.email
-                                        : profileBasicDetails.email;
-                                    foundExistingAccount.verified = 0;
-                                    await SendEmailSMTPWithCode(new SendEmailHelper()
-                                    {
-                                        email = profileBasicDetails.email,
-                                        code = Convert.ToInt32(code),
-                                        body = "STI Monitoring System Account Activation Code"
-                                    });
-                                    expandedObj.logoutRequired = true;
-                                }
-                                else
+                                    email = profileBasicDetails.email,
+                                    code = Convert.ToInt32(code),
+                                    body = "STI Monitoring System Account Activation Code"
+                                });
+                                expandedObj.logoutRequired = true;
+                            }
+                            else
+                            {
+                                verification.email = profileBasicDetails.email;
+                                verification.code = Convert.ToInt32(code);
+                                verification.resendCount = 1;
+                                verification.isValid = 1;
+                                verification.type = "email";
+                                verification.createdAt = DateTime.Now;
+                                verification.updatedAt = DateTime.Today;
+                                await context.Set<Verification>().AddAsync(verification);
+                                foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
+                                    ? foundExistingAccount.email
+                                    : profileBasicDetails.email;
+                                foundExistingAccount.verified = 0;
+
+                                await SendEmailSMTPWithCode(new SendEmailHelper()
                                 {
-                                    verification.email = profileBasicDetails.email;
-                                    verification.code = Convert.ToInt32(code);
-                                    verification.resendCount = 1;
-                                    verification.isValid = 1;
-                                    verification.type = "email";
-                                    verification.createdAt = DateTime.Now;
-                                    verification.updatedAt = DateTime.Today;
-                                    await context.Set<Verification>().AddAsync(verification);
-                                    foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
-                                        ? foundExistingAccount.email
-                                        : profileBasicDetails.email;
-                                    foundExistingAccount.verified = 0;
-                                    
-                                    await SendEmailSMTPWithCode(new SendEmailHelper()
-                                    {
-                                        email = profileBasicDetails.email,
-                                        code = Convert.ToInt32(code),
-                                        body = "STI Monitoring System Account Activation Code"
-                                    });
-                                    expandedObj.logoutRequired = true;
-                                }
+                                    email = profileBasicDetails.email,
+                                    code = Convert.ToInt32(code),
+                                    body = "STI Monitoring System Account Activation Code"
+                                });
+                                expandedObj.logoutRequired = true;
                             }
                         }
                     }
-                    else
+                }
+                else
+                {
+                    foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
+                        ? foundExistingAccount.email
+                        : profileBasicDetails.email;
+                }
+                await context.SaveChangesAsync();
+                var dictateReferences = await context.Set<TEntity>()
+                    .Where(x => x.id == profileBasicDetails.id && x.status == 1 && x.verified == 1 || x.verified == 0).Select(x => new
                     {
-                        foundExistingAccount.email = string.IsNullOrEmpty(profileBasicDetails.email)
-                            ? foundExistingAccount.email
-                            : profileBasicDetails.email;
-                    }
-                    await context.SaveChangesAsync();
-                    var dictateReferences = await context.Set<TEntity>()
-                        .Where(x => x.id == profileBasicDetails.id && x.status == 1 && x.verified == 1 || x.verified == 0).Select(x => new
-                        {
-                            firstname = x.firstname,
-                            middlename = x.middlename,
-                            lastname = x.lastname,
-                            id = x.id,
-                            section = x.section,
-                            course = x.course_id,
-                            username = x.username,
-                            mobile_number = x.mobileNumber,
-                            imgurl = x.imgurl,
-                            access_level = x.access_level,
-                            verified = x.verified,
-                            email = x.email,
-                            multipleSections = x.multipleSections
-                        }).ToListAsync();
-                    expandedObj.status = 200;
-                    expandedObj.references = dictateReferences;
-                    return expandedObj;
+                        firstname = x.firstname,
+                        middlename = x.middlename,
+                        lastname = x.lastname,
+                        id = x.id,
+                        section = x.section,
+                        course = x.course_id,
+                        username = x.username,
+                        mobile_number = x.mobileNumber,
+                        imgurl = x.imgurl,
+                        access_level = x.access_level,
+                        verified = x.verified,
+                        email = x.email,
+                        multipleSections = x.multipleSections
+                    }).ToListAsync();
+                expandedObj.status = 200;
+                expandedObj.references = dictateReferences;
+                return expandedObj;
             }
             else
             {
@@ -1053,7 +1054,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             expandedObj.status = 200;
             expandedObj.references = dictateReferences;
             return expandedObj;
-            
+
         }
         else
         {
@@ -1109,9 +1110,10 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             .Where(x => x.Account.access_level == 3 && x.Account.status == 1
                                                     && x.Account.verified == 1)
             .ToListAsync();
-        
+
         studentAttendance = studentAttendance
-            .Where(x => {
+            .Where(x =>
+            {
                 var multiSections = JsonConvert.DeserializeObject<List<MultiSections>>(x.Account.multipleSections);
                 return multiSections.Any(sect => section.section.Contains(sect.value));
             })
@@ -1161,7 +1163,8 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
 
         // Filter the results based on the 'section.section' data
         result = result
-            .Where(x => {
+            .Where(x =>
+            {
                 var sectionList = JsonConvert.DeserializeObject<List<MultiSections>>(x.Account.multipleSections)
                     .Select(multiSection => multiSection.value);
                 return section.section.Intersect(sectionList).Any();
@@ -1329,7 +1332,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 .Where(x => x.access_level == 3)
                 .ToListAsync();
             return noSectionResult;
-            
+
         }
         else
         {
@@ -1531,7 +1534,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             recordCounts.Add("record_joined_logs", historySeven);
             recordCounts.Add("ticketings_logs", historyEight);
             recordCounts.Add("verifications_logs", historyNine);
-           
+
             return recordCounts;
         }
 
@@ -1604,7 +1607,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         {
             context.Verifications.Remove(verificationLoggersToBeDeleted);
         }
-        
+
         var result = await _userManager.FindByEmailAsync(findEmailById.email);
         if (result != null)
         {
@@ -1711,8 +1714,8 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
             {
                 bool checkNoDeviceKey = await context.DeviceRecognitions.AnyAsync(x => x.accountId == _getAccountId.id
                     && x._appGranted == AppGranted.ACTIVE);
-            
-            
+
+
                 if (checkNoDeviceKey)
                 {
                     var result = await context.DeviceRecognitions
@@ -1757,7 +1760,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                     var relogin = await context.DeviceRecognitions.AnyAsync(x => x.deviceKey == deviceKey
                         && x._appGranted == AppGranted.ACTIVE
                         && x.accountId == _getAccountId.id);
-                
+
                     if (relogin)
                     {
                         expandoObject.key = newDeviceKey;
@@ -1809,7 +1812,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                            && x.approved != 1);
         if (_checkAccFromDevice)
         {
-            
+
             var result = await context.DeviceRecognitions
                 .Where(x => x.accountId == approveSigninHelper.accountId
                 && x._appGranted == AppGranted.ACTIVE
@@ -1818,7 +1821,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                 .FirstOrDefaultAsync();
             if (result != null)
             {
-                
+
                 context.DeviceRecognitions.Remove(result);
                 await context.SaveChangesAsync();
                 await CreateNewDeviceKey(approveSigninHelper.accountId);
@@ -1920,7 +1923,7 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                            && x.signinRequest > 0);
         if (_checkAccFromDevice)
         {
-            
+
             var result = await context.DeviceRecognitions
                 .Where(x => x.accountId == approveSigninHelper.accountId
                             && x._appGranted == AppGranted.ACTIVE
@@ -1943,6 +1946,20 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
         }
 
         return 500;
-        
+
+    }
+
+    public async Task<dynamic> StudentMarkAsDelete(Guid id)
+    {
+        var foundAttendanceLogs = await context.ProductivityManagements
+        .Where(x => x.id == id)
+        .FirstOrDefaultAsync();
+        if (foundAttendanceLogs != null)
+        {
+            context.ProductivityManagements.Remove(foundAttendanceLogs);
+            await context.SaveChangesAsync();
+            return 200;
+        }
+        return 400;
     }
 }

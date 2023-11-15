@@ -32,7 +32,7 @@ namespace sti_sys_backend.Controllers.BaseControllers.MeetingRoomBase
             var result = (await _repository.createRoom(entity));
             return Ok(result);
         }
-        
+
         [Route("get-all-rooms"), HttpGet, HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllRooms([FromBody] SectionsHelper sectionsHelper)
@@ -87,6 +87,14 @@ namespace sti_sys_backend.Controllers.BaseControllers.MeetingRoomBase
         public async Task<IActionResult> joinedParticipantsList([FromRoute] Guid room_id)
         {
             var result = await _repository.ListParticipants(room_id);
+            return Ok(result);
+        }
+
+        [Route("unauthorized-participants/{room_id}"), HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> unauthorizedParticipants([FromRoute] Guid room_id)
+        {
+            var result = await _repository.ListUnauthorizedParticipants(room_id);
             return Ok(result);
         }
 
@@ -162,7 +170,7 @@ namespace sti_sys_backend.Controllers.BaseControllers.MeetingRoomBase
             var result = await _repository.CheckStudentAuthorization(accountId);
             return Ok(result);
         }
-        
+
         /* app settings api temp place here. */
         [Route("initialized-settings"), HttpPost]
         [AllowAnonymous]
@@ -187,7 +195,7 @@ namespace sti_sys_backend.Controllers.BaseControllers.MeetingRoomBase
             var res = await _repository.UpdateAnySettings(settings);
             return Ok(res);
         }
-        
+
         [Route("remove-ticket-issues/{id}"), HttpDelete]
         [AllowAnonymous]
         public async Task<IActionResult> RemoveTicketIssues([FromRoute] Guid id)
