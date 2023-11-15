@@ -239,56 +239,47 @@ namespace sti_sys_backend.Core.ServiceImplementations
         }
         public async Task<dynamic> ListParticipants(Guid room_id)
         {
-            bool participantsHasAny = await _context.Set<JoinedParticipants>()
+            bool participantsExist = await _context.Set<JoinedParticipants>()
                 .AnyAsync(x => x.room_id == room_id);
-            if (!participantsHasAny)
+
+            if (!participantsExist)
             {
-                return 400;
+                return 400; // Consider using an appropriate HTTP status code, e.g., BadRequest
             }
-            else
+
+            var joinedRoom = await _context.Set<MeetingRoom>()
+                .Where(x => x.id == room_id && x.room_status == 1)
+                .FirstOrDefaultAsync();
+
+            if (joinedRoom == null)
             {
-                var joined_room = await _context.Set<TEntity>()
-                    .Where(x => x.id == room_id && x.room_status == 1)
-                    .FirstOrDefaultAsync();
-                if (joined_room != null)
-                {
-                    var list = await _context.JoinedParticipantsEnumerable
-                        .Where(x => x.room_id == joined_room.id && x._joinedStatus == JoinedStatus.JOINED && x.date_joined.Date == DateTime.Today)
-                        .OrderByDescending(x => x.date_joined)
-                        .Join(_context.AccountsEnumerable,
-                            joined => joined.accountId,
-                            account => account.id,
-                            ((participants, accounts) => new
-                            {
-                                Joined = participants,
-                                Account = accounts
-                            }))
-                        .Join(_context.Set<TEntity>(),
-                            meetings => meetings.Joined.room_id,
-                            additional => additional.id,
-                            (joined, additional) => new
-                            {
-                                Joined = joined.Joined,
-                                Account = joined.Account,
-                                Additional = additional
-                            })
-                        .Join(_context.CoursesEnumerable,
-                            courses => courses.Account.course_id,
-                            account => account.id,
-                            (joined, course) => new
-                            {
-                                Joined = joined.Joined,
-                                Account = joined.Account,
-                                Additional = joined.Additional,
-                                Course = course
-                            }).ToListAsync();
-                    return list;
-                }
-                else
-                {
-                    return 400;
-                }
+                return 400; // Consider using an appropriate HTTP status code, e.g., BadRequest
             }
+
+            var participantsList = await _context.JoinedParticipantsEnumerable
+                .Where(x => x.room_id == joinedRoom.id && x._joinedStatus == JoinedStatus.JOINED)
+                .OrderByDescending(x => x.date_joined)
+                .Join(
+                    _context.AccountsEnumerable,
+                    joined => joined.accountId,
+                    account => account.id,
+                    (joined, account) => new { Joined = joined, Account = account }
+                )
+                .Join(
+                    _context.Set<TEntity>(),
+                    joined => joined.Joined.room_id,
+                    additional => additional.id,
+                    (joined, additional) => new { Joined = joined.Joined, Account = joined.Account, Additional = additional }
+                )
+                .Join(
+                    _context.CoursesEnumerable,
+                    joined => joined.Account.course_id,
+                    course => course.id,
+                    (joined, course) => new { Joined = joined.Joined, Account = joined.Account, Additional = joined.Additional, Course = course }
+                )
+                .ToListAsync();
+
+            return participantsList;
         }
 
         public async Task<dynamic> RecordListParticipants(Guid room_id)
