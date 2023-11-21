@@ -440,24 +440,17 @@ public abstract class AccountsImpl<TEntity, TContext> : IAccountsService<TEntity
                                     .AnyAsync();
                                 if (checkAttendance)
                                 {
-                                    bool checkStudentProductivity = await context.Set<ProductivityManagement>()
-                                        .AnyAsync(x =>
-                                            x.accountId == findAllAccountsDetails.id && x._status == Status.TIME_OUT);
-                                    if (checkStudentProductivity)
-                                    {
-                                        DateTime currentDatev1 = await worldTimeApi.ConfigureDateTime();
-                                        TimeSpan currentTime = await worldTimeApi.ConfigureTimeSpan();
-                                        ProductivityManagement productivityManagement = new ProductivityManagement();
-                                        productivityManagement.accountId = getAccountId.id;
-                                        productivityManagement._productivityStatus = ProductivityStatus.PENDING;
-                                        productivityManagement.TimeIn = currentTime;
-                                        productivityManagement.TimeOut = TimeSpan.Zero;
-                                        productivityManagement._status = Status.TIME_IN;
-                                        productivityManagement.Date = currentDatev1;
-                                        await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
-                                        await context.SaveChangesAsync();
-                                    }
-
+                                    DateTime currentDatev1 = await worldTimeApi.ConfigureDateTime();
+                                    TimeSpan currentTime = await worldTimeApi.ConfigureTimeSpan();
+                                    ProductivityManagement productivityManagement = new ProductivityManagement();
+                                    productivityManagement.accountId = getAccountId.id;
+                                    productivityManagement._productivityStatus = ProductivityStatus.PENDING;
+                                    productivityManagement.TimeIn = currentTime;
+                                    productivityManagement.TimeOut = TimeSpan.Zero;
+                                    productivityManagement._status = Status.TIME_IN;
+                                    productivityManagement.Date = currentDatev1;
+                                    await context.Set<ProductivityManagement>().AddAsync(productivityManagement);
+                                    await context.SaveChangesAsync();
                                 }
                                 else
                                 {
